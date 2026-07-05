@@ -9,9 +9,9 @@ import { apiService, type StyleContextNote } from '@/lib/api';
 
 // A4: Generation mode definitions
 const GENERATION_MODES = [
-  { id: 'standard' as const, label: 'Standard', multiplier: 1, icon: ImageOff, desc: 'Good quality', color: 'gray' },
-  { id: 'hd' as const, label: 'HD', multiplier: 2, icon: Diamond, desc: 'Higher quality + auto-retry', color: 'blue' },
-  { id: 'pro' as const, label: 'Pro', multiplier: 3, icon: Zap, desc: 'Best quality + priority', color: 'amber' },
+  { id: 'standard' as const, label: 'Standard', multiplier: 1, credits: 2, icon: ImageOff, desc: 'Good quality', color: 'gray' },
+  { id: 'hd' as const, label: 'HD', multiplier: 2, credits: 4, icon: Diamond, desc: 'Higher quality + auto-retry', color: 'blue' },
+  { id: 'pro' as const, label: 'Pro', multiplier: 3, credits: 6, icon: Zap, desc: 'Best quality + priority', color: 'amber' },
 ] as const;
 
 export type GenerationMode = 'standard' | 'hd' | 'pro';
@@ -43,7 +43,7 @@ export const PreGenerationSheet: React.FC<PreGenerationSheetProps> = ({
   const [selectedMode, setSelectedMode] = useState<GenerationMode>('standard');
   const [contextNotes, setContextNotes] = useState<StyleContextNote[]>([]);
   const modeConfig = GENERATION_MODES.find(m => m.id === selectedMode)!;
-  const modeCost = Math.ceil(creditCost * modeConfig.multiplier);
+  const modeCost = modeConfig.credits;
   const hasEnoughCredits = userCredits >= modeCost;
   const creditsAfter = Math.max(0, userCredits - modeCost);
 
@@ -114,7 +114,7 @@ export const PreGenerationSheet: React.FC<PreGenerationSheetProps> = ({
             <p className="text-xs text-gray-500 font-medium mb-2">Quality mode</p>
             <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Quality mode">
               {GENERATION_MODES.map((mode) => {
-                const cost = Math.ceil(creditCost * mode.multiplier);
+                const cost = mode.credits;
                 const isSelected = selectedMode === mode.id;
                 const canAfford = userCredits >= cost;
                 return (

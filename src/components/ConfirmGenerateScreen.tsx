@@ -9,9 +9,9 @@ import { cn } from '@/lib/utils';
 
 // Generation mode definitions (matching PreGenerationSheet)
 const GENERATION_MODES = [
-  { id: 'standard' as const, label: 'Standard', multiplier: 1, icon: ImageOff, color: 'gray', desc: 'Fast results, good quality' },
-  { id: 'hd' as const, label: 'HD', multiplier: 2, icon: Diamond, color: 'blue', desc: 'Sharper detail, better realism' },
-  { id: 'pro' as const, label: 'Pro', multiplier: 3, icon: Zap, color: 'amber', desc: 'Best quality, lifelike output' },
+  { id: 'standard' as const, label: 'Standard', multiplier: 1, credits: 2, icon: ImageOff, color: 'gray', desc: 'Fast results, good quality' },
+  { id: 'hd' as const, label: 'HD', multiplier: 2, credits: 4, icon: Diamond, color: 'blue', desc: 'Sharper detail, better realism' },
+  { id: 'pro' as const, label: 'Pro', multiplier: 3, credits: 6, icon: Zap, color: 'amber', desc: 'Best quality, lifelike output' },
 ] as const;
 
 export type GenerationMode = 'standard' | 'hd' | 'pro';
@@ -41,7 +41,7 @@ export const ConfirmGenerateScreen: React.FC<ConfirmGenerateScreenProps> = ({
   // first try-on instead of landing on an unaffordable HD tier + paywall.
   const [selectedMode, setSelectedMode] = useState<GenerationMode>('standard');
   const modeConfig = GENERATION_MODES.find(m => m.id === selectedMode)!;
-  const creditCost = Math.ceil((selectedHairstyle.price || 1) * modeConfig.multiplier);
+  const creditCost = modeConfig.credits;
   const canAfford = userCredits >= creditCost;
 
   const photoUrl = URL.createObjectURL(selectedPhoto);
@@ -104,7 +104,7 @@ export const ConfirmGenerateScreen: React.FC<ConfirmGenerateScreenProps> = ({
         </p>
         <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Quality mode">
           {GENERATION_MODES.map((mode) => {
-            const cost = Math.ceil((selectedHairstyle.price || 1) * mode.multiplier);
+            const cost = mode.credits;
             const isSelected = selectedMode === mode.id;
             const affordable = userCredits >= cost;
             const needMore = cost - userCredits;
