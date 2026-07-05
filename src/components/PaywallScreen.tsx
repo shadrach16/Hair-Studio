@@ -16,7 +16,7 @@ const TIER_STYLES: Record<string, { emoji: string; accent: string; bg: string }>
   credits250:  { emoji: '👑', accent: 'text-amber-600', bg: 'bg-amber-50' },
   unlimited:   { emoji: '∞', accent: 'text-emerald-600', bg: 'bg-emerald-50' },
 };
-const DEFAULT_TIER = { emoji: '✨', accent: 'text-gray-600', bg: 'bg-gray-50' };
+const DEFAULT_TIER = { emoji: '🪙', accent: 'text-gray-600', bg: 'bg-gray-50' };
 
 // Google Play returns subscription product identifiers as "subscriptionId:basePlanId"
 // (e.g. "plus_annual:plus-annual-1y"). Match on the subscriptionId part so the catalog

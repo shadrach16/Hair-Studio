@@ -37,7 +37,9 @@ export const ConfirmGenerateScreen: React.FC<ConfirmGenerateScreenProps> = ({
   onBack,
   onBuyCredits,
 }) => {
-  const [selectedMode, setSelectedMode] = useState<GenerationMode>('hd');
+  // Default to Standard (cheapest) so a new user's free credits can complete a
+  // first try-on instead of landing on an unaffordable HD tier + paywall.
+  const [selectedMode, setSelectedMode] = useState<GenerationMode>('standard');
   const modeConfig = GENERATION_MODES.find(m => m.id === selectedMode)!;
   const creditCost = Math.ceil((selectedHairstyle.price || 1) * modeConfig.multiplier);
   const canAfford = userCredits >= creditCost;

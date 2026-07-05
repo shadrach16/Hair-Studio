@@ -117,6 +117,10 @@ export function captureAttribution(input?: string | null, method: Attribution['m
 export function getPendingTarget(): string | null {
   return localStorage.getItem(LS.pendingTarget);
 }
+/** Set the pending deep-link target (e.g. from a personalized push tap). */
+export function setPendingTarget(id: string): void {
+  if (id) localStorage.setItem(LS.pendingTarget, id);
+}
 export function clearPendingTarget(): void {
   localStorage.removeItem(LS.pendingTarget);
 }

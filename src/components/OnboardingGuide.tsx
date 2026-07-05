@@ -40,7 +40,7 @@ const slides = [
   },
   {
     id: 'style',
-    emoji: '✨',
+    emoji: '💇',
     title: 'Choose any\nhairstyle',
     description: 'Browse hundreds of curated styles — braids, locs, fades, wigs and more.',
     gradient: 'from-amber-500/10 via-orange-500/5 to-transparent',

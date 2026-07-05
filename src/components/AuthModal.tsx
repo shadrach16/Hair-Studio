@@ -118,7 +118,7 @@ export default function AuthModal({
                       {/* Benefits mini-list */}
                       <div className="mt-5 w-full grid grid-cols-2 gap-2">
                         {[
-                          { emoji: '✨', text: 'AI hairstyle try-on' },
+                          { emoji: '💇', text: 'Hairstyle try-on' },
                           { emoji: '📸', text: 'HD quality results' },
                           { emoji: '💾', text: 'Save your looks' },
                           { emoji: '🔓', text: 'Unlock all styles' },

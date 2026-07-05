@@ -39,7 +39,8 @@ export const PreGenerationSheet: React.FC<PreGenerationSheetProps> = ({
   onCancel,
   onBuyCredits,
 }) => {
-  const [selectedMode, setSelectedMode] = useState<GenerationMode>('hd');
+  // Default to Standard (cheapest) so free-credit users can complete a first try-on.
+  const [selectedMode, setSelectedMode] = useState<GenerationMode>('standard');
   const [contextNotes, setContextNotes] = useState<StyleContextNote[]>([]);
   const modeConfig = GENERATION_MODES.find(m => m.id === selectedMode)!;
   const modeCost = Math.ceil(creditCost * modeConfig.multiplier);

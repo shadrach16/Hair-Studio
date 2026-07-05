@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { getPendingTarget, clearPendingTarget } from '@/lib/attribution';
+import { getPendingTarget, clearPendingTarget, setPendingTarget } from '@/lib/attribution';
 
 // ✅ CAPACITOR IMPORTS
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -90,7 +90,10 @@ const registerForPushNotifications = async (navigate: (path: string) => void) =>
     });
 
     PushNotifications.addListener('pushNotificationActionPerformed', (action: ActionPerformed) => {
-      const link = action.notification.data?.link;
+      const data: any = action.notification.data || {};
+      // Personalized recommendation tap -> route to that exact style (contextual paywall).
+      if (data.hairstyleId) setPendingTarget(String(data.hairstyleId));
+      const link = data.link || (data.hairstyleId ? '/' : null);
       if (link) navigate(link);
     });
   } catch (error) {
