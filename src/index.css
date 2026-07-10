@@ -3,6 +3,32 @@
 @tailwind utilities;
 
 @layer base {
+  /* Native-app feel: on the installed app only (.cap-native on <html>), disable
+     browser-style text selection, the long-press callout menu, and the tap-highlight
+     flash. The web build keeps normal selection. Real inputs stay editable/selectable. */
+  .cap-native,
+  .cap-native * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cap-native input,
+  .cap-native textarea,
+  .cap-native select,
+  .cap-native [contenteditable="true"],
+  .cap-native .selectable,
+  .cap-native [data-selectable="true"] {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+  }
+}
+
+@layer base {
   :root {
     /* ============================================
        HAIR STUDIO DESIGN SYSTEM TOKENS

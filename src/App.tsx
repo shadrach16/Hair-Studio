@@ -61,6 +61,9 @@ const checkAndRequestStoragePermission = async () => {
 
 // Run initialization only once
 if (!hasInitialized && Capacitor.isNativePlatform()) {
+  // Native app shouldn't feel like a web page — flag the root so CSS can disable
+  // browser-style text selection / long-press callout (see index.css .cap-native).
+  document.documentElement.classList.add('cap-native');
   if (import.meta.env.VITE_GOOGLE_CLIENT_ID) {
     SocialLogin.initialize({
        google: {
