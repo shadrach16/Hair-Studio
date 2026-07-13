@@ -47,8 +47,8 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
         rcDebugInfo,
     } = usePayment();
 
-    // Default to Subscriptions (higher LTV); fall back to credits only if no plans exist.
-    const [activeTab, setActiveTab] = useState<PaywallTab>('subscriptions');
+    // Default to Credit Packs (cheap entry point) — leading with annual plans scared users off.
+    const [activeTab, setActiveTab] = useState<PaywallTab>('credits');
     const userPickedTab = useRef(false);
     const [isRestoring, setIsRestoring] = useState(false);
 
@@ -91,11 +91,11 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
 
     const hasSubscriptions = subscriptionItems.length > 0;
 
-    // Once data resolves, honour the Subscriptions-first default unless the user has
-    // already chosen a tab (avoids a race where subs load after first paint).
+    // Keep Credit Packs as the landing tab unless the user explicitly picks a tab
+    // (avoids a race where subs load after first paint and steal focus).
     useEffect(() => {
         if (!userPickedTab.current) {
-            setActiveTab(hasSubscriptions ? 'subscriptions' : 'credits');
+            setActiveTab('credits');
         }
     }, [hasSubscriptions]);
 
