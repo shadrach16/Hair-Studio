@@ -13,7 +13,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 // Network identity + deep-link host (override via env for a branded domain later).
 export const CHANNEL_HANDLE = (import.meta as any).env?.VITE_CHANNEL_HANDLE || '@ShadHairStudio';
-export const APP_LINK_HOST = ((import.meta as any).env?.VITE_APP_LINK_HOST || 'https://213-136-65-247.sslip.io').replace(/\/$/, '');
+export const APP_LINK_HOST = ((import.meta as any).env?.VITE_APP_LINK_HOST || 'https://167-86-112-90.sslip.io').replace(/\/$/, '');
 
 /** Build a shareable https deep link (routes through /go -> app or Play Store w/ referrer). */
 export function buildDeepLink(params: { content?: string; videoId?: string; source?: string; medium?: string; ref?: string }): string {

@@ -38,13 +38,13 @@
                 <data android:scheme="hairstudio" />
             </intent-filter>
 
-            <!-- Verified Android App Links: https://213-136-65-247.sslip.io/go?... -->
+            <!-- Verified Android App Links: https://167-86-112-90.sslip.io/go?... -->
             <!-- Requires /.well-known/assetlinks.json on the host (served by backend). -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="213-136-65-247.sslip.io" android:pathPrefix="/go" />
+                <data android:scheme="https" android:host="167-86-112-90.sslip.io" android:pathPrefix="/go" />
             </intent-filter>
         </activity>
 
