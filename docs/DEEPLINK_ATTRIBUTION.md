@@ -25,7 +25,7 @@ surviving an install (deferred). Built lean/free — no paid MMP.
 **Canonical format** — one https App Link with UTM baked in:
 
 ```
-https://213-136-65-247.sslip.io/go?content=<ARTIFACT_ID>&utm_source=youtube&utm_medium=video&utm_campaign=<VIDEO_ID>&ref=<REFERRAL_CODE?>
+https://167-86-112-90.sslip.io/go?content=<ARTIFACT_ID>&utm_source=youtube&utm_medium=video&utm_campaign=<VIDEO_ID>&ref=<REFERRAL_CODE?>
 ```
 
 - `content` = the hairstyle/result id the video references → app deep-links straight to it.
@@ -63,7 +63,7 @@ GET /api/attribution/campaigns        (admin or x-cron-secret)
 3. **Rebuild + upload the AAB** (manifest intent-filters + native Install Referrer plugin
    are native — they need a new build).
 4. Verify App Links: `adb shell pm verify-app-links --re-verify com.hairstudio.app` and
-   `https://213-136-65-247.sslip.io/.well-known/assetlinks.json` returns your fingerprint.
+   `https://167-86-112-90.sslip.io/.well-known/assetlinks.json` returns your fingerprint.
 
 > A branded domain (e.g. `links.shadhairstudio.com`) later → swap `PUBLIC_APP_LINK_HOST`
 > + `VITE_APP_LINK_HOST`, reissue cert, update the manifest host. One-time.

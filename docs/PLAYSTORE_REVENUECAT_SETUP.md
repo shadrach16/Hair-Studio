@@ -8,7 +8,7 @@ in‑app purchases so the backend actually grants credits.
 **Backend purchase webhook:** `POST /api/webhooks/revenuecat`
 
 > ✅ **HTTPS is set up.** The backend now answers on
-> `https://213-136-65-247.sslip.io` with a valid Let's Encrypt certificate
+> `https://167-86-112-90.sslip.io` with a valid Let's Encrypt certificate
 > (auto‑renewing). Use that as the webhook base URL. Plain HTTP on the raw IP still
 > works for the app. (You can swap this free `sslip.io` host for a real branded
 > domain later — just re‑issue the cert and update the RevenueCat webhook URL.)
@@ -146,7 +146,7 @@ auto‑converts to GBP — review, don't undercut):
 
 ### B5. Webhook → your backend  ← this is what grants credits
 1. **Project settings → Integrations → Webhooks → + New.**
-2. **URL:** `https://213-136-65-247.sslip.io/api/webhooks/revenuecat`
+2. **URL:** `https://167-86-112-90.sslip.io/api/webhooks/revenuecat`
 3. **Authorization header:** set the value to **`Bearer <REVENUECAT_WEBHOOK_TOKEN>`**,
    where the token is the `REVENUECAT_WEBHOOK_TOKEN` value in your server `.env`
    (the backend checks `Authorization: Bearer <token>` and 401s otherwise).
@@ -176,6 +176,6 @@ If the backend reads RevenueCat REST (`REVENUECAT_REST_API_KEY` in `.env`), past
 
 ## Quick reference
 - Package: `com.hairstudio.app`
-- Webhook: `POST https://213-136-65-247.sslip.io/api/webhooks/revenuecat`, header `Authorization: Bearer <REVENUECAT_WEBHOOK_TOKEN>`
+- Webhook: `POST https://167-86-112-90.sslip.io/api/webhooks/revenuecat`, header `Authorization: Bearer <REVENUECAT_WEBHOOK_TOKEN>`
 - `app_user_id` = MongoDB user `_id` (set via `Purchases.logIn`)
 - Source of truth for IDs/credits: `backend/services/pricingCatalog.js`
