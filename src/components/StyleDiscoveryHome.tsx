@@ -15,6 +15,8 @@ import {
   Image as ImageIcon,
   ImagePlus,
 } from 'lucide-react';
+import { StyleCard } from '@/components/ui/StyleCard';
+import { cardThumb } from '@/lib/img';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -56,9 +58,11 @@ const HeroCard: React.FC<{
     >
       <div className="relative aspect-[16/10] rounded-3xl overflow-hidden shadow-lg shadow-gray-200/60">
         <img
-          src={hairstyle.thumbnail}
+          // Sized CDN derivative rather than the full-resolution original —
+          // the hero was pulling a 1200px+ image into a ~380px slot.
+          src={cardThumb(hairstyle.thumbnail, 420)}
           alt={hairstyle.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-700 group-active:scale-105"
         />
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -104,47 +108,21 @@ const HeroCard: React.FC<{
 
 // ─── Compact Style Card (for carousels) ─────────────────────────────────────
 
+// Shelf card = the shared StyleCard (M3 §5.1) at carousel width. Wider than the
+// old 108px so the photo can actually carry the card, and 4:5 to match the grid.
 const CompactStyleCard: React.FC<{
   hairstyle: Hairstyle;
-  canAfford: boolean;
   onSelect: (h: Hairstyle) => void;
-  onLockedTap?: (h: Hairstyle) => void;
   index: number;
   reason?: string;
-}> = ({ hairstyle, canAfford, onSelect, onLockedTap, index, reason }) => (
-  <motion.button
+}> = ({ hairstyle, onSelect, index, reason }) => (
+  <motion.div
     initial={{ opacity: 0, y: 8 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.3, delay: index * 0.04 }}
-    // Browsing is never gated: every style opens the try-on flow. Credit checks
-    // happen at generation time, where the cost is actually shown.
-    onClick={() => onSelect(hairstyle)}
-    className="flex-shrink-0 w-[108px] group text-left"
+    className="w-[132px] flex-shrink-0"
   >
-    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100 shadow-sm shadow-gray-200/50">
-      <img
-        src={hairstyle.thumbnail}
-        alt={hairstyle.name}
-        loading="lazy"
-        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-
-      {hairstyle.isNew && (
-        <div className="absolute top-2 left-2">
-          <span className="px-1.5 py-0.5 bg-emerald-500/90 backdrop-blur-sm rounded-full text-[8px] font-bold text-white uppercase tracking-wide">
-            New
-          </span>
-        </div>
-      )}
-
-      {/* Name at bottom */}
-      <div className="absolute bottom-0 inset-x-0 p-2">
-        <p className="text-[11px] font-semibold text-white leading-tight line-clamp-1">
-          {hairstyle.name}
-        </p>
-      </div>
-    </div>
+    <StyleCard hairstyle={hairstyle} onSelect={() => onSelect(hairstyle)} width={132} />
     {/* Only show a reason when it actually differentiates. The generic
         "Popular style" repeated under every card was pure noise. */}
     {reason && !/^popular/i.test(reason) && (
@@ -152,7 +130,7 @@ const CompactStyleCard: React.FC<{
         {reason}
       </p>
     )}
-  </motion.button>
+  </motion.div>
 );
 
 // ─── Carousel Section ───────────────────────────────────────────────────────
@@ -207,9 +185,7 @@ const CarouselSection: React.FC<CarouselSectionProps> = ({
             <CompactStyleCard
               key={h._id || h.id}
               hairstyle={h}
-              canAfford={userCredits >= h.price}
               onSelect={onSelect}
-              onLockedTap={onLockedTap}
               index={i}
               reason={showReasons ? h.recommendationReason : undefined}
             />
@@ -385,7 +361,6 @@ export const StyleDiscoveryHome: React.FC<StyleDiscoveryHomeProps> = ({
             hairstyles={trending.filter(h => h._id !== featuredStyle?._id && h.id !== featuredStyle?.id).slice(0, 10)}
             userCredits={userCredits}
             onSelect={handleStyleTap}
-            onLockedTap={onLockedTap}
             onSeeAll={onSeeAll}
           />
         )}
@@ -397,7 +372,6 @@ export const StyleDiscoveryHome: React.FC<StyleDiscoveryHomeProps> = ({
             hairstyles={forYou}
             userCredits={userCredits}
             onSelect={handleStyleTap}
-            onLockedTap={onLockedTap}
             onSeeAll={onSeeAll}
             showReasons
           />
@@ -413,7 +387,6 @@ export const StyleDiscoveryHome: React.FC<StyleDiscoveryHomeProps> = ({
               hairstyles={col.hairstyles}
               userCredits={userCredits}
               onSelect={handleStyleTap}
-              onLockedTap={onLockedTap}
               onSeeAll={onSeeAll}
             />
           );
