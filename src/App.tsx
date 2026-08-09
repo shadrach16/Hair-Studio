@@ -18,6 +18,7 @@ import AuthCallback from '@/components/AuthCallback';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Filesystem } from '@capacitor/filesystem';
 import { IonApp, setupIonicReact } from '@ionic/react';
+import { initStatusBar, registerHardwareBack } from '@/lib/native';
 import { App as CapacitorApp, URLOpenListenerEvent } from '@capacitor/app';
 import AppLoader from '@/components/AppLoader';
 import { captureAttribution, reportInstallOnce, shouldCheckInstallReferrer, markInstallReferrerChecked } from '@/lib/attribution';
@@ -34,16 +35,16 @@ setupIonicReact({ mode: 'md', rippleEffect: false, animated: true });
 let hasInitialized = false;
 
 const setStatusBarAppearance = async () => {
- if (!Capacitor.isNativePlatform()) {
-   console.log('[App Init] Not native platform, skipping status bar setup.');
-   return;
- }
+ if (!Capacitor.isNativePlatform()) return;
  try {
   await StatusBar.show();
-  await StatusBar.setBackgroundColor({ color: '#ffffff' });
-  await StatusBar.setStyle({ style: Style.Light });
   await StatusBar.setOverlaysWebView({ overlay: false });
-  console.log('[App Init] Status Bar appearance set.');
+  // One-plane rule (4.2): the status bar is painted the EXACT surface hex so
+  // there is no seam between the clock and the chrome bar. Previously this was
+  // hardcoded #ffffff, which no longer matches --surface (#FAF8F5) and showed
+  // a visible band at the top. initStatusBar also re-applies after ~1.6s to
+  // beat the splash-screen/plugin race.
+  initStatusBar('light');
  } catch (e) {
    console.error("[App Init] Error setting status bar:", e);
  }
@@ -83,6 +84,10 @@ if (!hasInitialized && Capacitor.isNativePlatform()) {
   }
   setStatusBarAppearance();
   checkAndRequestStoragePermission();
+  // Android back: close an open sheet -> pop a pushed screen -> minimize at a
+  // tab root. Without this, hardware back exits the app from any screen
+  // (@ionic/react does not handle this on its own).
+  registerHardwareBack();
   hasInitialized = true;
 } else {
   console.log(`[App Init] Skipping native initialization (hasInitialized: ${hasInitialized}, isNative: ${Capacitor.isNativePlatform()})`);

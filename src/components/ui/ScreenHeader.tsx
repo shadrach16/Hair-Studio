@@ -1,70 +1,47 @@
-// ScreenHeader.tsx — one header for every screen.
+// ScreenHeader.tsx — the large-title header.
 //
-// Ported from the pattern used in the Retinue/Nerve apps: a thin, translucent
-// bar that sits over content, with the screen title in the editorial serif and
-// optional leading (back) / trailing (action) slots. Consistency here is a
-// large part of why an app reads as "designed" rather than assembled.
+// Ported from the verified Retinue/Nerve pattern. Deliberately NOT a
+// translucent blur bar: the references keep status bar, chrome bar and page as
+// one continuous plane of --surface, and put the title *below* the chrome bar
+// rather than inside it. Zero seams is what reads "premium native".
+//
+// Our one deviation: the title is set in the editorial serif (Fraunces) rather
+// than sans, per the two-typeface system — the title is Hair Studio's voice.
 
-import React from 'react';
-import { cn } from '@/lib/utils';
+import type { ReactNode } from 'react';
 
 export interface ScreenHeaderProps {
-  title?: string;
+  /** Usually a string; accepts a node so a wordmark can stand in as a logo. */
+  title: ReactNode;
   subtitle?: string;
-  onBack?: () => void;
-  /** Rendered on the right — keep to ONE action for a calm header. */
-  action?: React.ReactNode;
-  /** Blur/translucency over scrolling content. */
-  translucent?: boolean;
-  className?: string;
+  /** Right-hand slot — keep to ONE action for a calm header. */
+  trailing?: ReactNode;
+  /**
+   * True ONLY when this header is the topmost element on screen (no chrome bar
+   * above it). Inside the shell the chrome bar already owns the safe-area
+   * inset; repeating it here double-pads the title — a bug the reference app
+   * hit in production. The rule: exactly one element owns the top inset.
+   */
+  standalone?: boolean;
 }
 
-export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
-  title,
-  subtitle,
-  onBack,
-  action,
-  translucent = true,
-  className,
-}) => (
-  <header
-    className={cn(
-      'sticky top-0 z-30 flex items-center gap-3 px-4',
-      'pt-[var(--safe-area-top)] h-[calc(var(--header-height)+var(--safe-area-top))]',
-      translucent
-        ? 'bg-surface/85 backdrop-blur-xl border-b border-hairline'
-        : 'bg-surface border-b border-hairline',
-      className
-    )}
-  >
-    {onBack && (
-      <button
-        onClick={onBack}
-        aria-label="Back"
-        className="-ml-1 w-9 h-9 flex items-center justify-center rounded-full text-ink"
-      >
-        {/* Chevron drawn inline: no icon-set dependency for the most-used control */}
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path
-            d="M15 5l-7 7 7 7"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
-    )}
-
-    <div className="flex-1 min-w-0">
-      {title && (
-        <h1 className="font-display text-title text-ink truncate leading-tight">{title}</h1>
-      )}
-      {subtitle && <p className="text-caption text-ink-2 truncate">{subtitle}</p>}
-    </div>
-
-    {action && <div className="flex-shrink-0">{action}</div>}
-  </header>
-);
+export function ScreenHeader({ title, subtitle, trailing, standalone = false }: ScreenHeaderProps) {
+  return (
+    <header
+      className="px-5 pb-2"
+      style={{
+        paddingTop: standalone ? 'calc(env(safe-area-inset-top) + 0.75rem)' : '0.375rem',
+      }}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="font-display text-display text-ink tracking-tight">{title}</h1>
+          {subtitle && <p className="mt-0.5 text-label text-ink-3">{subtitle}</p>}
+        </div>
+        {trailing && <div className="shrink-0">{trailing}</div>}
+      </div>
+    </header>
+  );
+}
 
 export default ScreenHeader;
