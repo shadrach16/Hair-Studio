@@ -1,204 +1,202 @@
-// StyleDetailSheet.tsx — Bottom sheet for hairstyle detail + "Try This Style" CTA
-// Opens when user taps any style card from the home discovery screen
+// StyleDetailSheet.tsx — v2 (M3 §5.4). The single "act on a style" surface for
+// every entry point: shelves, grid, deep links, similar-styles rail.
+//
+// Rebuilt on the BottomSheet primitive (IonModal), which brings real
+// drag-to-dismiss, snap breakpoints and hardware-back handling that the old
+// hand-rolled fixed-overlay could not do.
+//
+// Deliberate choices:
+//  - Photo-first hero, title in the editorial serif, metadata as quiet
+//    "editorial credits" rather than badges.
+//  - ONE primary CTA ("Try it on me") — the single place a gradient is allowed.
+//  - "Styles like this" rail uses getSimilarStyles, an endpoint that already
+//    existed but was never wired to any UI. Tapping swaps the sheet contents in
+//    place so browsing never costs a dismiss.
+//  - NO price arithmetic on this sheet. Cost surfaces at ConfirmGenerate.
 
 import React, { useEffect, useState } from 'react';
-import { X, Coins, Clock, ShieldCheck, ChevronRight, Star, TrendingUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { type Hairstyle } from '@/lib/api';
-import { apiService, type StyleContextNote } from '@/lib/api';
-import { BASE_GENERATION_COST } from '@/lib/generationTiers';
+import { motion, AnimatePresence } from 'framer-motion';
+import { IonIcon } from '@ionic/react';
+import { heart, heartOutline, shareOutline } from 'ionicons/icons';
+import { apiService, type Hairstyle, type StyleContextNote } from '@/lib/api';
+import { BottomSheet } from '@/components/ui/BottomSheet';
+import { StyleCard } from '@/components/ui/StyleCard';
+import { cdnImage, lqip } from '@/lib/img';
 import { cn } from '@/lib/utils';
 
 interface StyleDetailSheetProps {
   hairstyle: Hairstyle;
   onTryStyle: (hairstyle: Hairstyle) => void;
   onClose: () => void;
-  userCredits: number;
-  onBuyCredits: () => void;
+  /** Kept for call-site compatibility; the sheet no longer shows prices. */
+  userCredits?: number;
+  onBuyCredits?: () => void;
+  onShare?: (h: Hairstyle) => void;
 }
 
 export const StyleDetailSheet: React.FC<StyleDetailSheetProps> = ({
-  hairstyle,
+  hairstyle: initialStyle,
   onTryStyle,
   onClose,
-  userCredits,
-  onBuyCredits,
+  onShare,
 }) => {
-  const [contextNotes, setContextNotes] = useState<StyleContextNote[]>([]);
-  const canAfford = userCredits >= hairstyle.price;
+  // Local "current style" so the similar-styles rail can swap content without
+  // dismissing the sheet.
+  const [style, setStyle] = useState<Hairstyle>(initialStyle);
+  const [notes, setNotes] = useState<StyleContextNote[]>([]);
+  const [similar, setSimilar] = useState<Hairstyle[]>([]);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [heroLoaded, setHeroLoaded] = useState(false);
 
-  // Derive high-res image from the 200px thumbnail stored in DB
-  const heroImage = hairstyle.thumbnail?.includes('/upload/')
-    ? hairstyle.thumbnail.replace(
-        /\/upload\/c_thumb,w_200,g_face\//,
-        '/upload/c_fill,w_600,h_800,g_face,q_auto/'
-      )
-    : hairstyle.thumbnail;
+  useEffect(() => setStyle(initialStyle), [initialStyle]);
 
   useEffect(() => {
-    const id = hairstyle._id || hairstyle.id;
-    if (id) {
-      apiService.getStyleContextNotes(id).then(res => {
-        if (res.success && res.data.notes.length > 0) {
-          setContextNotes(res.data.notes);
-        }
-      });
-    }
-  }, [hairstyle]);
+    const id = style._id || style.id;
+    if (!id) return;
+    setNotes([]);
+    setSimilar([]);
+    // Reset the blur-up gate, or swapping to another style would show the new
+    // hero as already-loaded (and therefore invisible until onLoad fires).
+    setHeroLoaded(false);
+    apiService.getStyleContextNotes(id).then((res) => {
+      if (res.success) setNotes(res.data.notes || []);
+    });
+    apiService.getSimilarStyles(id, 8).then((res) => {
+      if (res.success) setSimilar((res.data as unknown as Hairstyle[]) || []);
+    });
+  }, [style]);
 
-  // Close on backdrop tap
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) onClose();
-  };
+  const meta = [style.category, (style as any).length, (style as any).culturalOrigin]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm"
-      onClick={handleBackdropClick}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="style-detail-title"
+    <BottomSheet
+      isOpen
+      onClose={onClose}
+      breakpoints={[0, 0.92]}
+      initialBreakpoint={0.92}
+      className="pb-0"
     >
-      <div className="w-full max-w-md max-h-[92vh] bg-white rounded-t-3xl shadow-2xl animate-slide-up safe-area-bottom overflow-y-auto scrollbar-none">
-        {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 bg-gray-200 rounded-full" />
-        </div>
-
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors z-10"
-          aria-label="Close"
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={style._id || style.id}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.18 }}
         >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Hero image */}
-        <div className="px-4 pb-3">
-          <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-gray-100">
+          {/* Hero — the photo is the point. Blur-up: the full-size image takes a
+              moment on mobile data, and without a placeholder the sheet opened
+              on a large white void. */}
+          {/* Height-capped rather than a strict 4:5: at sheet width a true 4:5
+              hero is taller than the viewport, pushing the name and the CTA
+              below the fold on open. */}
+          <div className="relative -mx-5 -mt-4 mb-4 h-[46vh] max-h-[440px] overflow-hidden bg-surface-2">
             <img
-              src={heroImage}
-              alt={hairstyle.name}
-              className="w-full h-full object-cover object-top"
+              src={lqip(style.thumbnail)}
+              alt=""
+              aria-hidden="true"
+              className={cn(
+                'absolute inset-0 h-full w-full scale-110 object-cover transition-opacity duration-300',
+                heroLoaded ? 'opacity-0' : 'opacity-100'
+              )}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-          </div>
-        </div>
+            <img
+              src={cdnImage(style.thumbnail, { width: 720 })}
+              alt={style.name}
+              onLoad={() => setHeroLoaded(true)}
+              className={cn(
+                'h-full w-full object-cover transition-opacity duration-300',
+                heroLoaded ? 'opacity-100' : 'opacity-0'
+              )}
+            />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-surface-2 to-transparent" />
 
-        {/* Info */}
-        <div className="px-5 pb-2">
-          {/* Title row */}
-          <h3 id="style-detail-title" className="text-xl font-bold text-gray-900 mb-1">
-            {hairstyle.name}
-          </h3>
-
-          {/* Social proof row */}
-          <div className="flex items-center gap-3 text-[13px] text-gray-500 mb-3">
-            {hairstyle.popularity > 0 && (
-              <span className="flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5 text-amber-500" />
-                {hairstyle.popularity.toLocaleString()} try-ons
-              </span>
-            )}
-            {hairstyle.estimatedTime && (
-              <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-blue-400" />
-                {hairstyle.estimatedTime}
-              </span>
-            )}
-          </div>
-
-          {/* Attribute chips */}
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {hairstyle.category && (
-              <span className="px-2.5 py-1 bg-gray-100 rounded-full text-[11px] font-medium text-gray-600">
-                {hairstyle.category}
-              </span>
-            )}
-            {hairstyle.culturalOrigin && (
-              <span className="px-2.5 py-1 bg-gray-100 rounded-full text-[11px] font-medium text-gray-600">
-                {hairstyle.culturalOrigin}
-              </span>
-            )}
-            {hairstyle.maintenance && (
-              <span className="px-2.5 py-1 bg-gray-100 rounded-full text-[11px] font-medium text-gray-600">
-                {hairstyle.maintenance} maintenance
-              </span>
-            )}
-            {hairstyle.difficulty && (
-              <span className="px-2.5 py-1 bg-gray-100 rounded-full text-[11px] font-medium text-gray-600">
-                {hairstyle.difficulty}
-              </span>
-            )}
+            <div className="absolute right-3 top-3 flex gap-2">
+              <button
+                onClick={() => setIsFavorite((v) => !v)}
+                aria-label={isFavorite ? 'Remove from favourites' : 'Save to favourites'}
+                className="grid h-10 w-10 place-items-center rounded-full bg-black/35 backdrop-blur-md active:scale-90 transition-transform"
+              >
+                <IonIcon
+                  icon={isFavorite ? heart : heartOutline}
+                  style={{ fontSize: 20 }}
+                  className={isFavorite ? 'text-brass' : 'text-white'}
+                />
+              </button>
+              {onShare && (
+                <button
+                  onClick={() => onShare(style)}
+                  aria-label="Share this style"
+                  className="grid h-10 w-10 place-items-center rounded-full bg-black/35 backdrop-blur-md active:scale-90 transition-transform"
+                >
+                  <IonIcon icon={shareOutline} style={{ fontSize: 20 }} className="text-white" />
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Context notes */}
-          {contextNotes.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {contextNotes.slice(0, 3).map((note, i) => (
+          {/* Title + editorial credits */}
+          <h2 id="style-detail-title" className="font-display text-display-sm text-ink leading-tight">
+            {style.name}
+          </h2>
+          {meta && <p className="mt-1 text-caption text-ink-2">{meta}</p>}
+
+          {notes.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {notes.slice(0, 3).map((n, i) => (
                 <span
                   key={i}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 rounded-full text-[11px] text-amber-700 border border-amber-100"
+                  className="rounded-full bg-surface px-2.5 py-1 text-caption-sm text-ink-2 ring-1 ring-hairline"
                 >
-                  <span>{note.icon}</span>
-                  {note.text}
+                  {n.text}
                 </span>
               ))}
             </div>
           )}
-        </div>
 
-        {/* CTA section */}
-        <div className="px-5 pb-6">
-          {/* Always "try it" — never a paywall here. A signed-out visitor has 0
-              credits, so the old canAfford check turned this into "Get Credits
-              to Try" before they had seen a single result. Credits are checked
-              at generation time, where the cost is actually shown. */}
-          <Button
-            onClick={() => onTryStyle(hairstyle)}
-            className="w-full h-13 bg-ink hover:bg-ink/90 text-surface rounded-2xl text-[15px] font-semibold shadow-sm transition-all active:scale-[0.98]"
-          >
-            Try it on me
-            <ChevronRight className="w-4.5 h-4.5 ml-1" />
-          </Button>
+          {/* Styles like this — endpoint existed but was never surfaced */}
+          {similar.length > 0 && (
+            <div className="mt-6">
+              <h3 className="font-display text-title-sm text-ink">Styles like this</h3>
+              <div className="-mx-5 mt-2.5 overflow-x-auto scrollbar-none">
+                <div className="flex gap-2.5 px-5" style={{ width: 'max-content' }}>
+                  {similar.map((s) => (
+                    <div key={s._id || s.id} className="w-[112px] flex-shrink-0">
+                      <StyleCard
+                        hairstyle={s}
+                        width={112}
+                        onSelect={() => setStyle(s)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
-          {/* Trust line */}
-          <div className="flex items-center justify-center gap-4 mt-3">
-            <span className="flex items-center gap-1 text-[11px] text-gray-400">
-              <Coins className="w-3 h-3 text-brass" />
-              {/* Flat per-tier cost. Previously showed hairstyle.price, which no
-                  longer matches what the server charges. */}
-              {BASE_GENERATION_COST} credits
-            </span>
-            <span className="flex items-center gap-1 text-[11px] text-gray-400">
-              <Clock className="w-3 h-3 text-blue-400" />
-              ~20s
-            </span>
-            <span className="flex items-center gap-1 text-[11px] text-gray-400">
-              <ShieldCheck className="w-3 h-3 text-emerald-400" />
-              Refund if failed
-            </span>
-          </div>
-        </div>
+          {/* Spacer so content clears the sticky CTA */}
+          <div className="h-24" />
+        </motion.div>
+      </AnimatePresence>
 
-        <style>{`
-          @keyframes slide-up {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-          }
-          .animate-slide-up {
-            animation: slide-up 0.3s ease-out forwards;
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .animate-slide-up { animation: none; }
-          }
-          .safe-area-bottom {
-            padding-bottom: max(8px, env(safe-area-inset-bottom));
-          }
-        `}</style>
+      {/* Sticky primary action — the one gradient in the app */}
+      <div className="sticky inset-x-0 bottom-0 -mx-5 border-t border-hairline bg-surface-2 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+        <button
+          onClick={() => onTryStyle(style)}
+          className={cn(
+            'h-13 w-full rounded-2xl bg-gradient-brand text-[15px] font-semibold text-white',
+            'shadow-sm transition-transform active:scale-[0.98]'
+          )}
+        >
+          Try it on me
+        </button>
+        <p className="mt-2 text-center text-caption-sm text-ink-3">
+          ~20s · your photo stays private
+        </p>
       </div>
-    </div>
+    </BottomSheet>
   );
 };
 

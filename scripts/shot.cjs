@@ -53,7 +53,17 @@ const tapFlag = flags.find((f) => f.startsWith('--tap='));
     await page.waitForTimeout(2000);
   }
 
-  await page.screenshot({ path: out });
+  // Stop only INFINITE CSS animations (shimmer skeletons) right before capture:
+  // they otherwise keep the page from settling and screenshot() times out.
+  // We must NOT use Playwright's `animations:'disabled'` — it rewinds
+  // framer-motion entrance animations to their initial state (opacity: 0), so
+  // every animated card renders invisible. Letting motion finish first and then
+  // freezing CSS keeps the real rendered result.
+  await page.addStyleTag({
+    content: `*,*::before,*::after{animation-iteration-count:1!important;animation-duration:.01ms!important}`,
+  });
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: out, timeout: 60000 });
   console.log('saved:', out);
   await browser.close();
 })().catch((e) => {
