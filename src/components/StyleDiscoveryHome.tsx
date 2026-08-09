@@ -284,6 +284,21 @@ export const StyleDiscoveryHome: React.FC<StyleDiscoveryHomeProps> = ({
   const [trending, setTrending] = useState<StyleRecommendation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // First-run hint (the zero-screen replacement for the intro carousel).
+  const [showFirstRunHint, setShowFirstRunHint] = useState(
+    () => localStorage.getItem('hs_seen_discover_hint') !== '1'
+  );
+  const handleStyleTap = useCallback(
+    (h: Hairstyle) => {
+      if (showFirstRunHint) {
+        localStorage.setItem('hs_seen_discover_hint', '1');
+        setShowFirstRunHint(false);
+      }
+      onStyleSelect(h);
+    },
+    [showFirstRunHint, onStyleSelect]
+  );
+
   // Featured hairstyle = random trending style, rotates daily
   const featuredStyle = useMemo<Hairstyle | null>(() => {
     if (trending.length > 0) {
@@ -324,11 +339,13 @@ export const StyleDiscoveryHome: React.FC<StyleDiscoveryHomeProps> = ({
         <div className="px-4 pt-4 pb-3">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-[22px] font-bold text-gray-900 tracking-tight">
+              <h1 className="font-display text-display text-ink tracking-tight">
                 Discover Styles
               </h1>
-              <p className="text-[13px] text-gray-400 mt-0.5">
-                Find your next look
+              {/* Replaces the old 3-screen intro carousel: the instruction is
+                  delivered in place, once, and disappears after the first tap. */}
+              <p className="text-caption text-ink-2 mt-0.5">
+                {showFirstRunHint ? 'Tap any style to see it on you' : 'Find your next look'}
               </p>
             </div>
             {onCustomStyleUpload && (
@@ -348,7 +365,7 @@ export const StyleDiscoveryHome: React.FC<StyleDiscoveryHomeProps> = ({
         {/* Hero Card */}
         <HeroCard
           hairstyle={featuredStyle}
-          onTap={onStyleSelect}
+          onTap={handleStyleTap}
           isLoading={isLoading}
         />
 
@@ -367,7 +384,7 @@ export const StyleDiscoveryHome: React.FC<StyleDiscoveryHomeProps> = ({
             icon={<Flame className="w-4 h-4 text-orange-500" />}
             hairstyles={trending.filter(h => h._id !== featuredStyle?._id && h.id !== featuredStyle?.id).slice(0, 10)}
             userCredits={userCredits}
-            onSelect={onStyleSelect}
+            onSelect={handleStyleTap}
             onLockedTap={onLockedTap}
             onSeeAll={onSeeAll}
           />
@@ -379,7 +396,7 @@ export const StyleDiscoveryHome: React.FC<StyleDiscoveryHomeProps> = ({
             title="For You"
             hairstyles={forYou}
             userCredits={userCredits}
-            onSelect={onStyleSelect}
+            onSelect={handleStyleTap}
             onLockedTap={onLockedTap}
             onSeeAll={onSeeAll}
             showReasons
@@ -395,7 +412,7 @@ export const StyleDiscoveryHome: React.FC<StyleDiscoveryHomeProps> = ({
               title={col.name}
               hairstyles={col.hairstyles}
               userCredits={userCredits}
-              onSelect={onStyleSelect}
+              onSelect={handleStyleTap}
               onLockedTap={onLockedTap}
               onSeeAll={onSeeAll}
             />

@@ -161,19 +161,12 @@ export const useStudioPageLogic = () => {
     }
   }, [hairstyles]);
 
-  // Onboarding Effect - Show on first launch
+  // Zero-screen onboarding: we deliberately do NOT show a carousel on first
+  // launch. Users land straight in the lookbook and learn by doing (a one-line
+  // hint on the discovery screen carries the instruction). Classic intro
+  // carousels cost a large share of first-opens before any value is seen.
   useEffect(() => {
-    const hasCompletedOnboarding = localStorage.getItem(ONBOARDING_KEY);
-    
-    // Show onboarding on first launch if not completed
-    if (!hasCompletedOnboarding) {
-      // If URL explicitly requests discover, skip onboarding and mark complete
-      if (searchParams.get('studio_status') === 'discover') {
-        localStorage.setItem(ONBOARDING_KEY, 'true');
-        return;
-      }
-      setShowOnboarding(true);
-    }
+    localStorage.setItem(ONBOARDING_KEY, 'true');
   }, []);
 
   // Push Notifications Effect
@@ -261,12 +254,9 @@ export const useStudioPageLogic = () => {
       
       if (!hasGeneratedBefore) {
         localStorage.setItem(FIRST_GENERATION_KEY, 'true');
-        // Show onboarding if not already completed (with small delay for UX)
-        if (!hasCompletedOnboarding) {
-          setTimeout(() => {
-            setShowOnboarding(true);
-          }, 1500); // Show after 1.5s so user sees the result first
-        }
+        // Nothing is shown over the first result: this is the "wow" moment and
+        // the highest-intent point to save/share. Interrupting it with a guide
+        // costs the share, which is our main organic growth loop.
       } else if (shouldShowRatePrompt(user)) {
         // Show rate app prompt on subsequent generations (not first — let user form opinion)
         setTimeout(() => {
