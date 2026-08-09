@@ -5,13 +5,16 @@ import React, { useState } from 'react';
 import { ChevronLeft, Coins, Clock, ShieldCheck, ArrowRight, ImageOff, Diamond, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { type Hairstyle } from '@/lib/api';
+import { tierCost } from '@/lib/generationTiers';
 import { cn } from '@/lib/utils';
 
 // Generation mode definitions (matching PreGenerationSheet)
 const GENERATION_MODES = [
-  { id: 'standard' as const, label: 'Standard', multiplier: 1, credits: 2, icon: ImageOff, color: 'gray', desc: 'Fast results, good quality' },
-  { id: 'hd' as const, label: 'HD', multiplier: 2, credits: 4, icon: Diamond, color: 'blue', desc: 'Sharper detail, better realism' },
-  { id: 'pro' as const, label: 'Pro', multiplier: 3, credits: 6, icon: Zap, color: 'amber', desc: 'Best quality, lifelike output' },
+  // Costs come from lib/generationTiers (single source of truth, mirrors the
+  // backend). Only presentation lives here.
+  { id: 'standard' as const, label: 'Standard', credits: tierCost('standard'), icon: ImageOff, color: 'gray', desc: 'Fast results, good quality' },
+  { id: 'hd' as const, label: 'HD', credits: tierCost('hd'), icon: Diamond, color: 'blue', desc: 'Sharper detail, better realism' },
+  { id: 'pro' as const, label: 'Pro', credits: tierCost('pro'), icon: Zap, color: 'amber', desc: 'Best quality, lifelike output' },
 ] as const;
 
 export type GenerationMode = 'standard' | 'hd' | 'pro';
@@ -142,7 +145,8 @@ export const ConfirmGenerateScreen: React.FC<ConfirmGenerateScreenProps> = ({
         {/* Mode description — shows benefit or "need more credits" hint */}
         {(() => {
           const mode = GENERATION_MODES.find(m => m.id === selectedMode)!;
-          const cost = Math.ceil((selectedHairstyle.price || 1) * mode.multiplier);
+          // Flat tier cost — `multiplier` no longer exists on the tier objects.
+          const cost = mode.credits;
           const affordable = userCredits >= cost;
           const needMore = cost - userCredits;
           return (

@@ -6,6 +6,7 @@ import { X, Coins, Clock, ShieldCheck, ChevronRight, Star, TrendingUp } from 'lu
 import { Button } from '@/components/ui/button';
 import { type Hairstyle } from '@/lib/api';
 import { apiService, type StyleContextNote } from '@/lib/api';
+import { BASE_GENERATION_COST } from '@/lib/generationTiers';
 import { cn } from '@/lib/utils';
 
 interface StyleDetailSheetProps {
@@ -150,29 +151,25 @@ export const StyleDetailSheet: React.FC<StyleDetailSheetProps> = ({
 
         {/* CTA section */}
         <div className="px-5 pb-6">
-          {canAfford ? (
-            <Button
-              onClick={() => onTryStyle(hairstyle)}
-              className="w-full h-13 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl text-[15px] font-semibold shadow-sm transition-all active:scale-[0.98]"
-            >
-              Try This Style
-              <ChevronRight className="w-4.5 h-4.5 ml-1" />
-            </Button>
-          ) : (
-            <Button
-              onClick={onBuyCredits}
-              className="w-full h-13 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-2xl text-[15px] font-semibold shadow-sm transition-all active:scale-[0.98]"
-            >
-              Get Credits to Try
-              <ChevronRight className="w-4.5 h-4.5 ml-1" />
-            </Button>
-          )}
+          {/* Always "try it" — never a paywall here. A signed-out visitor has 0
+              credits, so the old canAfford check turned this into "Get Credits
+              to Try" before they had seen a single result. Credits are checked
+              at generation time, where the cost is actually shown. */}
+          <Button
+            onClick={() => onTryStyle(hairstyle)}
+            className="w-full h-13 bg-ink hover:bg-ink/90 text-surface rounded-2xl text-[15px] font-semibold shadow-sm transition-all active:scale-[0.98]"
+          >
+            Try it on me
+            <ChevronRight className="w-4.5 h-4.5 ml-1" />
+          </Button>
 
           {/* Trust line */}
           <div className="flex items-center justify-center gap-4 mt-3">
             <span className="flex items-center gap-1 text-[11px] text-gray-400">
-              <Coins className="w-3 h-3 text-amber-400" />
-              {hairstyle.price} credit{hairstyle.price !== 1 ? 's' : ''}
+              <Coins className="w-3 h-3 text-brass" />
+              {/* Flat per-tier cost. Previously showed hairstyle.price, which no
+                  longer matches what the server charges. */}
+              {BASE_GENERATION_COST} credits
             </span>
             <span className="flex items-center gap-1 text-[11px] text-gray-400">
               <Clock className="w-3 h-3 text-blue-400" />

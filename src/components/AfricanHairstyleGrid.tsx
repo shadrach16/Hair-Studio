@@ -12,6 +12,7 @@ import { apiService, type Hairstyle } from '@/lib/api';
 import { Search, Filter, Coins, Loader2, SortAsc, ChevronDown, Lock, ChevronLeft, ChevronRight, Palette, Upload, Heart } from 'lucide-react'; 
 import { useDebounce } from '@/hooks/useDebounce';
 import { useAuth } from '@/hooks/useAuth';
+import { BASE_GENERATION_COST } from '@/lib/generationTiers';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -81,8 +82,7 @@ const HairstyleCard = ({
     aria-label={hairstyle.name}
     className={cn(
       "cursor-pointer transition-all duration-300 group overflow-hidden border-2 rounded-card",
-      isSelected ? 'border-brand-500 shadow-glow-amber' : 'border-transparent shadow-card hover:shadow-card-hover hover:-translate-y-0.5',
-      !canAfford && !isCustom && 'opacity-50 hover:shadow-none hover:-translate-y-0 cursor-not-allowed'
+      isSelected ? 'border-brand-500 shadow-glow-amber' : 'border-transparent shadow-card hover:shadow-card-hover hover:-translate-y-0.5'
     )}
   >
     <CardContent className="p-0">
@@ -109,23 +109,16 @@ const HairstyleCard = ({
           />
         </button>
         
-        <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/40 backdrop-blur-sm text-white px-2.5 py-1.5 rounded-full text-caption font-semibold">
-          {isCustom ? (
-             <Badge className="bg-brand-500/80 hover:bg-brand-600 text-caption-sm">Custom</Badge>
-          ) : (
-            <>
-              <Coins className="w-3 h-3 text-brand-300" />
-              <span>{hairstyle.price}</span>
-            </>
-          )}
-        </div>
-        
-        {!canAfford && !isCustom && (
-           <div className="absolute inset-0 bg-white/30 backdrop-blur-[1px] flex items-center justify-center">
-             <Lock className="w-6 h-6 text-white" />
-           </div>
+        {/* Browsing carries no price and no lock: per-style prices no longer
+            match the flat per-tier charge, and padlocking every card for a
+            signed-out visitor was the paywall-before-value problem. Cost is
+            shown at the moment of intent. */}
+        {isCustom && (
+          <div className="absolute top-2 right-2">
+            <Badge className="bg-brand-500/80 hover:bg-brand-600 text-caption-sm">Custom</Badge>
+          </div>
         )}
-        
+
         <div className="absolute bottom-0 left-0 p-3">
           <h4 className="text-label-sm text-white leading-tight line-clamp-2">
             {isCustom ? `Upload ID: ${hairstyle._id.slice(-4)}` : hairstyle.name}
@@ -547,9 +540,11 @@ export default function AfricanHairstyleGrid({
                   {selectedHairstyle.gender}
                 </Badge>
                 <div className="flex items-center space-x-1">
-                  <Coins className="w-3 h-3 text-amber-600" />
-                  <span className="text-sm font-bold text-amber-600">
-                    {selectedHairstyle.price}
+                  <Coins className="w-3 h-3 text-brass" />
+                  {/* Flat per-tier cost, not the legacy per-style price (the
+                      server charges the tier amount). */}
+                  <span className="text-sm font-bold text-brass">
+                    {BASE_GENERATION_COST}
                   </span>
                 </div>
               </div>
