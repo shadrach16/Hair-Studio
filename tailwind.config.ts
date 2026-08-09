@@ -19,31 +19,44 @@ export default {
       // HAIR STUDIO DESIGN SYSTEM - Mobile First
       // ===========================================
       
-      // Font Family
+      // ---- Typography: a disciplined TWO-typeface system -------------------
+      // `display` = Fraunces, the editorial serif. It is the app's VOICE and is
+      //   reserved for what the product "says": style names, result captions,
+      //   screen headlines, paywall headline. Never below 19px.
+      // `sans`/`ui` = the PLATFORM face (SF Pro on iOS, Roboto on Android) via
+      //   system-ui. All chrome — labels, buttons, nav, metadata. This is what
+      //   premium native apps ship, and it is why they read as native.
       fontFamily: {
-        sans: ['Work Sans', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Work Sans', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['"Fraunces Variable"', 'Fraunces', 'Georgia', 'Times New Roman', 'serif'],
+        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        ui: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
       },
       
       // Typography Scale (mobile-optimized)
+      // Editorial scale. Key names are unchanged so no component breaks; the
+      // VALUES move to the premium scale: bigger/lighter display (Fraunces reads
+      // elegant at 600, not 800), and small text lifted for legibility on device
+      // (captions 13/12 instead of 12/11 — the single cheapest "quality" win).
       fontSize: {
-        // Display - Hero text
-        'display': ['2.25rem', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '800' }],
-        'display-sm': ['1.875rem', { lineHeight: '1.15', letterSpacing: '-0.02em', fontWeight: '800' }],
-        // Title - Section headers
-        'title-lg': ['1.5rem', { lineHeight: '1.2', letterSpacing: '-0.01em', fontWeight: '700' }],
-        'title': ['1.25rem', { lineHeight: '1.25', letterSpacing: '-0.01em', fontWeight: '700' }],
-        'title-sm': ['1.125rem', { lineHeight: '1.3', fontWeight: '600' }],
-        // Body - Main content
-        'body-lg': ['1.125rem', { lineHeight: '1.6', fontWeight: '400' }],
-        'body': ['1rem', { lineHeight: '1.6', fontWeight: '400' }],
-        'body-sm': ['0.875rem', { lineHeight: '1.5', fontWeight: '400' }],
-        // Caption - Small text
-        'caption': ['0.75rem', { lineHeight: '1.4', letterSpacing: '0.01em', fontWeight: '500' }],
-        'caption-sm': ['0.6875rem', { lineHeight: '1.3', letterSpacing: '0.02em', fontWeight: '500' }],
-        // Label - Buttons, badges
-        'label': ['0.875rem', { lineHeight: '1', letterSpacing: '0.01em', fontWeight: '600' }],
-        'label-sm': ['0.75rem', { lineHeight: '1', letterSpacing: '0.02em', fontWeight: '600' }],
+        // Display — Fraunces only
+        'hero': ['2.125rem', { lineHeight: '2.5rem', letterSpacing: '-0.02em', fontWeight: '600' }],   // 34/40
+        'display': ['1.75rem', { lineHeight: '2.125rem', letterSpacing: '-0.02em', fontWeight: '600' }], // 28/34
+        'display-sm': ['1.5rem', { lineHeight: '1.875rem', letterSpacing: '-0.015em', fontWeight: '600' }], // 24/30
+        // Title — section headers
+        'title-lg': ['1.375rem', { lineHeight: '1.75rem', letterSpacing: '-0.01em', fontWeight: '600' }], // 22/28
+        'title': ['1.1875rem', { lineHeight: '1.5rem', letterSpacing: '-0.01em', fontWeight: '600' }],    // 19/24
+        'title-sm': ['1.0625rem', { lineHeight: '1.375rem', fontWeight: '600' }],                          // 17/22
+        // Body
+        'body-lg': ['1.0625rem', { lineHeight: '1.6rem', fontWeight: '400' }],   // 17/26
+        'body': ['0.9375rem', { lineHeight: '1.45rem', fontWeight: '400' }],      // 15/23
+        'body-sm': ['0.875rem', { lineHeight: '1.25rem', fontWeight: '400' }],    // 14/20
+        // Caption / micro
+        'caption': ['0.8125rem', { lineHeight: '1.125rem', fontWeight: '400' }],  // 13/18
+        'caption-sm': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.01em', fontWeight: '500' }], // 12/16
+        'micro': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.02em', fontWeight: '600' }],       // 12/16 uppercase eyebrows
+        // Label — buttons, badges
+        'label': ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '0.005em', fontWeight: '600' }],
+        'label-sm': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.02em', fontWeight: '600' }],
       },
       
       // Spacing Scale (8px base, mobile-friendly)
@@ -135,18 +148,46 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Brand Colors
+        // ---- Semantic tokens (source of truth; theme-aware via CSS vars) ----
+        ink: 'hsl(var(--ink))',
+        'ink-2': 'hsl(var(--ink-2))',
+        'ink-3': 'hsl(var(--ink-3))',
+        surface: 'hsl(var(--surface))',
+        'surface-2': 'hsl(var(--surface-2))',
+        hairline: 'hsl(var(--hairline))',
+        brass: 'hsl(var(--brass))',
+        'brass-ink': 'hsl(var(--brass-ink))',
+
+        // TRANSITIONAL SHIM: 207 existing usages of amber-*/orange-* across 29
+        // components predate the brass palette. Rather than a risky mass edit,
+        // we re-point Tailwind's amber/orange ramps at brass so every legacy
+        // class renders premium immediately. Components migrate to `brand-*`
+        // during the M3 component redesign, then this shim can be deleted.
+        amber: {
+          50: '#FAF6EC', 100: '#F2E8CF', 200: '#E6D3A3', 300: '#D9BC74',
+          400: '#C9A24E', 500: '#B98A2F', 600: '#9C7326', 700: '#7C5A1A',
+          800: '#5E4414', 900: '#42300E',
+        },
+        // Deeper bronze so two-stop gradients (from-amber-500 to-orange-500)
+        // still read as a gradient instead of flattening.
+        orange: {
+          50: '#F7F1E6', 100: '#EDDFC4', 200: '#DCC392', 300: '#C9A462',
+          400: '#AE8535', 500: '#8E6A22', 600: '#74561B', 700: '#5A4215',
+          800: '#42300E', 900: '#2C2009',
+        },
+
+        // Brand ramp — brass/champagne (premium) rather than warning-yellow amber
         brand: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b',  // Primary amber
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
+          50: '#FAF6EC',
+          100: '#F2E8CF',
+          200: '#E6D3A3',
+          300: '#D9BC74',
+          400: '#C9A24E',
+          500: '#B98A2F',  // Primary brass
+          600: '#9C7326',
+          700: '#7C5A1A',
+          800: '#5E4414',
+          900: '#42300E',
         },
         // Surface colors for layering
         surface: {
@@ -229,8 +270,9 @@ export default {
       
       // Background Images (gradients)
       backgroundImage: {
-        'gradient-brand': 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
-        'gradient-brand-soft': 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
+        // Restrained brass gradient — reserved for the ONE primary CTA per screen
+        'gradient-brand': 'linear-gradient(135deg, #C9A24E 0%, #9C7326 100%)',
+        'gradient-brand-soft': 'linear-gradient(135deg, #FAF6EC 0%, #F2E8CF 100%)',
         'gradient-premium': 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)',
         'gradient-premium-soft': 'linear-gradient(135deg, #faf5ff 0%, #eef2ff 100%)',
         'gradient-success': 'linear-gradient(135deg, #10b981 0%, #059669 100%)',

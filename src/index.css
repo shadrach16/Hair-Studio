@@ -1,3 +1,7 @@
+/* Self-hosted editorial serif (the app's "voice"). No runtime font request —
+   works offline in the native shell. UI chrome uses the platform face. */
+@import '@fontsource-variable/fraunces/opsz.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -26,6 +30,39 @@
     user-select: text;
     -webkit-touch-callout: default;
   }
+
+  /* Native press feedback: every interactive element dips slightly on touch.
+     Cheap, universal, and a large part of why native apps feel "solid".
+     `.no-press` opts out (e.g. full-bleed image surfaces). */
+  button:not(.no-press),
+  [role='button']:not(.no-press),
+  a[href]:not(.no-press) {
+    transition: transform 120ms cubic-bezier(0.2, 0, 0.2, 1), opacity 120ms ease;
+    touch-action: manipulation;
+  }
+  button:not(:disabled):not(.no-press):active,
+  [role='button']:not(.no-press):active,
+  a[href]:not(.no-press):active {
+    transform: scale(0.97);
+  }
+
+  /* Editorial serif is opt-in and never below 19px (below that a serif reads
+     cheap on device). Optical-size axis tuned for display use. */
+  .font-display,
+  .text-hero,
+  .text-display,
+  .text-display-sm {
+    font-variation-settings: 'opsz' 40;
+  }
+
+  /* Momentum scrolling + no overscroll glow bleeding between screens */
+  body {
+    background-color: hsl(var(--surface));
+    color: hsl(var(--ink));
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overscroll-behavior-y: none;
+  }
 }
 
 @layer base {
@@ -35,26 +72,39 @@
        Mobile-First Design System
     ============================================ */
     
-    /* Core Colors */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* ---- Core palette: warm paper + brass (premium salon-lookbook) --------
+       Named tokens (ink/surface/hairline/brass) are the source of truth; the
+       shadcn aliases below point at them so every existing bg-background /
+       text-foreground / border-border class re-skins with no component edits. */
+    --surface: 36 33% 97%;      /* warm paper — not pure white */
+    --surface-2: 0 0% 100%;     /* cards */
+    --ink: 24 10% 10%;          /* warm near-black */
+    --ink-2: 33 5% 32%;         /* secondary text */
+    --ink-3: 24 5% 64%;         /* tertiary / disabled */
+    --hairline: 33 19% 88%;     /* 1px separators — replaces boxy borders */
+    --brass: 40 59% 45%;        /* primary accent */
+    --brass-ink: 39 65% 29%;    /* accent text on light */
+
+    /* Core Colors (aliases) */
+    --background: var(--surface);
+    --foreground: var(--ink);
+    --card: var(--surface-2);
+    --card-foreground: var(--ink);
+    --popover: var(--surface-2);
+    --popover-foreground: var(--ink);
+    --primary: var(--ink);
+    --primary-foreground: var(--surface);
+    --secondary: 36 24% 94%;
+    --secondary-foreground: var(--ink);
+    --muted: 36 24% 94%;
+    --muted-foreground: var(--ink-2);
+    --accent: 40 45% 92%;
+    --accent-foreground: var(--brass-ink);
+    --destructive: 9 59% 44%;
+    --destructive-foreground: 0 0% 100%;
+    --border: var(--hairline);
+    --input: var(--hairline);
+    --ring: var(--brass);
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -72,12 +122,12 @@
     --bottom-total: calc(var(--bottom-bar-height) + var(--safe-area-bottom));
     --content-height: calc(100dvh - var(--header-total) - var(--bottom-total));
     
-    /* Brand Colors (HSL) */
-    --brand-50: 48 100% 96%;
-    --brand-100: 48 96% 89%;
-    --brand-500: 38 92% 50%;
-    --brand-600: 32 95% 44%;
-    --brand-700: 26 90% 37%;
+    /* Brand Colors (HSL) — brass/champagne ramp (was warning-yellow amber) */
+    --brand-50: 40 45% 96%;
+    --brand-100: 40 42% 89%;
+    --brand-500: 40 59% 45%;
+    --brand-600: 39 62% 38%;
+    --brand-700: 39 65% 29%;
     
     /* Premium/Pro Colors (HSL) */
     --premium-50: 270 100% 98%;
@@ -109,25 +159,40 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    /* Warm charcoal, never blue-black — keeps skin tones true in results */
+    --surface: 30 11% 7%;
+    --surface-2: 30 11% 11%;
+    --ink: 34 26% 95%;
+    --ink-2: 34 9% 69%;
+    --ink-3: 34 6% 42%;
+    --hairline: 30 11% 15%;
+    --brass: 41 61% 56%;
+    --brass-ink: 41 70% 68%;
+
+    --background: var(--surface);
+    --foreground: var(--ink);
+    --card: var(--surface-2);
+    --card-foreground: var(--ink);
+    --popover: var(--surface-2);
+    --popover-foreground: var(--ink);
+    --primary: var(--ink);
+    --primary-foreground: var(--surface);
+    --secondary: 30 10% 16%;
+    --secondary-foreground: var(--ink);
+    --muted: 30 10% 16%;
+    --muted-foreground: var(--ink-2);
+    --accent: 39 30% 20%;
+    --accent-foreground: var(--brass-ink);
+    --destructive: 9 55% 42%;
+    --destructive-foreground: 0 0% 100%;
+    --border: var(--hairline);
+    --input: var(--hairline);
+    --ring: var(--brass);
+    --brand-50: 39 25% 16%;
+    --brand-100: 39 28% 22%;
+    --brand-500: 41 61% 56%;
+    --brand-600: 41 66% 62%;
+    --brand-700: 41 70% 68%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -365,9 +430,10 @@ button, a, input, select, textarea,
 
 
 .logo, .fascinate-inline-regular {
-  font-family: "Fascinate Inline", system-ui;
-  font-weight: 400;
-  font-style: bold;
+  font-family: 'Fraunces Variable', Fraunces, Georgia, serif;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: -0.01em;
 }
 
 
@@ -400,9 +466,12 @@ button, a, input, select, textarea,
 }
 
 
-*  {
- font-family: "Work Sans", sans-serif;
-  font-weight: normal;
+/* UI chrome uses the PLATFORM face (SF Pro / Roboto) — this is the single
+   biggest reason premium apps read as native. Editorial serif is opt-in via
+   the `font-display` utility (Fraunces), never global. */
+* {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
   font-style: normal;
 }
 
@@ -413,7 +482,7 @@ button, a, input, select, textarea,
   position: absolute;
   z-index: 10;
   color: white;
-  font-family: 'Poppins', sans-serif; /* Or your brand font */
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -555,8 +624,8 @@ h1.titleXLarge {
 
 .card[data-package-card="true"]:hover {
     /* Professional hover effect */
-    border-color: #f59e0b !important; /* Amber/gold accent color */
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15) !important;
+    border-color: hsl(var(--brass)) !important;
+    box-shadow: 0 4px 15px hsl(var(--brass) / 0.15) !important;
     transform: translateY(-2px); /* Slight lift */
 }
 
