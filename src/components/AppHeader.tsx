@@ -16,19 +16,14 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { ChromeBar } from '@/components/ui/ChromeBar';
 import { LooksChip } from '@/components/ui/LooksChip';
-import MobileSidebar from '@/components/Sidebar';
 
+// Account actions (sign out, help, rewards, delete) intentionally live on the
+// Profile tab, not in the chrome — so this component no longer takes them.
 interface AppHeaderProps {
   user: any;
   isAuthenticated: boolean;
   setShowPricing: (show: boolean) => void;
-  setShowRewardsCenter?: (show: boolean) => void;
-  handleSignOutWithHaptic: () => void;
-  handleDeleteAccount: () => void;
-  onNavigate: (page: string) => void;
-  onShowHelp?: () => void;
   onShowAuth?: () => void;
-  isMobileShellEnabled?: boolean;
 }
 
 const LOGO_URL =
@@ -38,11 +33,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   user,
   isAuthenticated,
   setShowPricing,
-  handleSignOutWithHaptic,
-  onNavigate,
-  onShowHelp,
   onShowAuth,
-  isMobileShellEnabled = false,
 }) => {
   // The user has "seen value" once they hold any credits; guests with an empty
   // wallet get no pricing chrome at all (3.1 — value before pricing).
@@ -61,22 +52,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         className="sticky top-0 z-header w-full"
         leading={
           <div className="flex items-center gap-2">
-            {/* Legacy drawer kept ONLY for the desktop/web layout, which has no
-                tab bar. Native builds use the tabs and never render it. */}
-            {!isMobileShellEnabled && (
-              <div className="lg:hidden">
-                <MobileSidebar
-                  user={user}
-                  isAuthenticated={isAuthenticated}
-                  setShowPricing={setShowPricing}
-                  handleSignOutWithHaptic={handleSignOutWithHaptic}
-                  handleDeleteAccount={() => {}}
-                  onNavigate={onNavigate}
-                  onShowHelp={onShowHelp}
-                  onShowAuth={onShowAuth}
-                />
-              </div>
-            )}
+            {/* The hamburger drawer is gone: this is a mobile-only app and the
+                three tabs replace it entirely. */}
             <a
               href={Capacitor.isNativePlatform() ? undefined : '/'}
               className="flex items-center gap-2 pl-1.5"

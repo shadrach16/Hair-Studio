@@ -9,7 +9,6 @@ import AppHeader from '@/components/AppHeader';
 import AfricanHairstyleGrid from '@/components/AfricanHairstyleGrid';
 import MobileHairstyleModal from '@/components/MobileHairstyleModal';
 import PricingModal from '@/components/PricingModal';
-import OnboardingGuide from '@/components/OnboardingGuide';
 import HomePage from '@/components/HomePage';
 import HistoryPage from '@/components/HistoryPage';
 import MobileProfileHub from '@/components/MobileProfileHub';
@@ -285,37 +284,15 @@ export default function StudioPage() {
 
   return (
     <div id="main-content" className="min-h-[100dvh] h-[100dvh] bg-surface flex flex-col overflow-hidden">
-      <OnboardingGuide
-        isOpen={showOnboarding}
-        onClose={() => handleCloseOnboarding(false)}
-        onComplete={handleCloseOnboarding}
+      {/* Onboarding carousel removed (zero-screen onboarding — users land in the
+          lookbook and learn by doing). The header ternary that used to sit here
+          rendered the SAME component in both branches, so it collapsed to one. */}
+      <AppHeader
+        user={user}
+        isAuthenticated={isAuthenticated}
+        setShowPricing={setShowPricing}
+        onShowAuth={() => setShowAuthModal(true)}
       />
-
-      {Capacitor.isNativePlatform() && !showOnboarding ? (
-        <AppHeader
-          user={user}
-          isAuthenticated={isAuthenticated}
-          setShowPricing={setShowPricing}
-          setShowRewardsCenter={setShowRewardsCenter}
-          handleSignOutWithHaptic={handleSignOutWithHaptic}
-          handleDeleteAccount={handleDeleteAccount}
-          onNavigate={handleShellNavigate}
-          onShowHelp={showHelp}
-          onShowAuth={() => setShowAuthModal(true)}
-          isMobileShellEnabled={isMobileShellEnabled}
-        />
-      ): <AppHeader
-          user={user}
-          isAuthenticated={isAuthenticated}
-          setShowPricing={setShowPricing}
-          setShowRewardsCenter={setShowRewardsCenter}
-          handleSignOutWithHaptic={handleSignOutWithHaptic}
-          handleDeleteAccount={handleDeleteAccount}
-          onNavigate={handleShellNavigate}
-          onShowHelp={showHelp}
-          onShowAuth={() => setShowAuthModal(true)}
-          isMobileShellEnabled={isMobileShellEnabled}
-        /> }
 
     
 
