@@ -2,6 +2,11 @@
    works offline in the native shell. UI chrome uses the platform face. */
 @import '@fontsource-variable/fraunces/opsz.css';
 
+/* Ionic: CORE ONLY. We deliberately skip Ionic's normalize/typography/utility
+   sheets — those fight Tailwind and shadcn. Core is what the components
+   (IonModal sheets) actually need. */
+@import '@ionic/react/css/core.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -53,6 +58,32 @@
   .text-display,
   .text-display-sm {
     font-variation-settings: 'opsz' 40;
+  }
+
+  /* ---- Ionic component theming -----------------------------------------
+     Ionic components (sheet modals) read --ion-* variables. Point them at our
+     tokens so an IonModal is indistinguishable from the rest of the app.
+     Ionic's core.css is variables-only, so there is no layout conflict with
+     the existing Tailwind/document-scroll structure. */
+  :root {
+    --ion-background-color: hsl(var(--surface));
+    --ion-text-color: hsl(var(--ink));
+    --ion-font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --ion-backdrop-color: hsl(24 10% 10%);
+    --ion-backdrop-opacity: 0.38;
+  }
+  /* Sheet chrome: rounded top, our surface, hairline grab handle */
+  .hs-sheet {
+    --background: hsl(var(--surface-2));
+    --border-radius: 24px;
+    --box-shadow: 0 -8px 40px hsl(24 10% 10% / 0.18);
+    --handle-background: hsl(var(--hairline));
+  }
+  /* IonApp must not impose its own layout — we manage scrolling ourselves. */
+  .hs-ion-root {
+    contain: none;
+    overflow: visible;
+    position: static;
   }
 
   /* Momentum scrolling + no overscroll glow bleeding between screens */

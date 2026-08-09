@@ -17,6 +17,7 @@ import { Capacitor } from '@capacitor/core';
 import AuthCallback from '@/components/AuthCallback';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Filesystem } from '@capacitor/filesystem';
+import { IonApp, setupIonicReact } from '@ionic/react';
 import { App as CapacitorApp, URLOpenListenerEvent } from '@capacitor/app';
 import AppLoader from '@/components/AppLoader';
 import { captureAttribution, reportInstallOnce, shouldCheckInstallReferrer, markInstallReferrerChecked } from '@/lib/attribution';
@@ -24,6 +25,11 @@ import { readInstallReferrer } from '@/lib/installReferrer';
 
 
 const queryClient = new QueryClient();
+
+// Force the Material Design platform so the app renders identically on every
+// device (Ionic otherwise switches to iOS styling on Apple hardware, which
+// would fight our own design system).
+setupIonicReact({ mode: 'md', rippleEffect: false, animated: true });
 
 let hasInitialized = false;
 
@@ -293,20 +299,26 @@ const App = () => {
  const handleLoaderFinish = useCallback(() => setShowLoader(false), []);
 
  return (
-  <AuthProvider>
-   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-     <Toaster position="top-center" richColors expand={true} closeButton />
-     {showLoader && <AppLoader onFinish={handleLoaderFinish} />}
-     {/* 5. Wrap the entire app with HelmetProvider */}
-     <HelmetProvider>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-       <AppRoutes />
-      </BrowserRouter>
-     </HelmetProvider>
-    </TooltipProvider>
-   </QueryClientProvider>
-  </AuthProvider>
+  // IonApp provides the platform context Ionic components (sheet modals, native
+  // back-button handling) need. We use Ionic components standalone and keep
+  // react-router v6 — @ionic/react-router requires router v5, and rewriting
+  // routing app-wide is not worth the regression risk.
+  <IonApp className="hs-ion-root">
+   <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+     <TooltipProvider>
+      <Toaster position="top-center" richColors expand={true} closeButton />
+      {showLoader && <AppLoader onFinish={handleLoaderFinish} />}
+      {/* 5. Wrap the entire app with HelmetProvider */}
+      <HelmetProvider>
+       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <AppRoutes />
+       </BrowserRouter>
+      </HelmetProvider>
+     </TooltipProvider>
+    </QueryClientProvider>
+   </AuthProvider>
+  </IonApp>
  );
 };
 
