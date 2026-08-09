@@ -561,7 +561,7 @@ const handleClearCustom =  useCallback(() => {
     if (!isAuthenticated || user?.isGuest) {
       setShowAuthModal(true);
       toast.info('Sign in to upload custom hairstyles', {
-        description: 'Get 5 free credits when you sign up!',
+        description: 'Get 10 free credits when you sign up!',
       });
       return;
     }
@@ -653,7 +653,7 @@ const handleClearCustom =  useCallback(() => {
     if (!isAuthenticated || user?.isGuest) {
       setShowAuthModal(true);
       toast.info('Sign in to upload custom hairstyles', {
-        description: 'Get 5 free credits when you sign up!',
+        description: 'Get 10 free credits when you sign up!',
       });
       return;
     }
@@ -725,7 +725,7 @@ setSelectedHairstyle()
     if (!isAuthenticated || user?.isGuest) {
       setShowAuthModal(true);
       toast.info('Sign in to generate custom hairstyles', {
-        description: 'Get 5 free credits when you sign up!',
+        description: 'Get 10 free credits when you sign up!',
       });
       return;
     }

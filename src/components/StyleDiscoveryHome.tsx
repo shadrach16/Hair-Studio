@@ -72,20 +72,16 @@ const HeroCard: React.FC<{
           </div>
         )}
 
-        {/* Top-right price */}
-        <div className="absolute top-3.5 right-3.5">
-          <span className="flex items-center gap-1 px-2.5 py-1 bg-black/30 backdrop-blur-md rounded-full text-[12px] font-semibold text-white">
-            <Coins className="w-3.5 h-3.5 text-amber-300" />
-            {hairstyle.price} cr
-          </span>
-        </div>
+        {/* Browsing is price-free: cost is shown at the moment of intent (the
+            confirm screen), and per-style prices no longer reflect the flat
+            per-tier charge anyway. */}
 
         {/* Bottom info */}
         <div className="absolute bottom-0 inset-x-0 p-4 pb-4.5">
-          <p className="text-[11px] font-medium text-white/60 uppercase tracking-wider mb-0.5">
+          <p className="text-micro font-medium text-white/60 uppercase tracking-wider mb-0.5">
             Featured Style
           </p>
-          <h2 className="text-xl font-bold text-white leading-tight mb-1">
+          <h2 className="font-display text-display-sm text-white leading-tight mb-1">
             {hairstyle.name}
           </h2>
           <div className="flex items-center gap-2">
@@ -120,11 +116,10 @@ const CompactStyleCard: React.FC<{
     initial={{ opacity: 0, y: 8 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.3, delay: index * 0.04 }}
-    onClick={() => canAfford ? onSelect(hairstyle) : onLockedTap?.(hairstyle)}
-    className={cn(
-      'flex-shrink-0 w-[108px] group text-left',
-      !canAfford && 'opacity-60'
-    )}
+    // Browsing is never gated: every style opens the try-on flow. Credit checks
+    // happen at generation time, where the cost is actually shown.
+    onClick={() => onSelect(hairstyle)}
+    className="flex-shrink-0 w-[108px] group text-left"
   >
     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100 shadow-sm shadow-gray-200/50">
       <img
@@ -134,20 +129,6 @@ const CompactStyleCard: React.FC<{
         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-
-      {!canAfford && (
-        <div className="absolute inset-0 bg-white/30 backdrop-blur-[1px] flex items-center justify-center rounded-2xl">
-          <div className="w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-            <Lock className="w-3.5 h-3.5 text-white" />
-          </div>
-        </div>
-      )}
-
-      {/* Price chip */}
-      <div className="absolute top-2 right-2 flex items-center gap-0.5 px-1.5 py-0.5 bg-black/35 backdrop-blur-sm rounded-full">
-        <Coins className="w-2.5 h-2.5 text-amber-300" />
-        <span className="text-[9px] font-bold text-white">{hairstyle.price}</span>
-      </div>
 
       {hairstyle.isNew && (
         <div className="absolute top-2 left-2">
@@ -164,8 +145,10 @@ const CompactStyleCard: React.FC<{
         </p>
       </div>
     </div>
-    {reason && (
-      <p className="mt-1 px-0.5 text-[9px] text-gray-400 leading-tight line-clamp-1">
+    {/* Only show a reason when it actually differentiates. The generic
+        "Popular style" repeated under every card was pure noise. */}
+    {reason && !/^popular/i.test(reason) && (
+      <p className="mt-1 px-0.5 text-caption-sm text-ink-3 leading-tight line-clamp-1">
         {reason}
       </p>
     )}
@@ -202,8 +185,9 @@ const CarouselSection: React.FC<CarouselSectionProps> = ({
   return (
     <div className="mb-5">
       <div className="flex items-center justify-between px-4 mb-2.5">
-        <h3 className="text-[15px] font-bold text-gray-900 flex items-center gap-1.5">
-          {emoji && <span className="text-base">{emoji}</span>}
+        {/* Editorial shelf title. Emoji headers were removed — they read as
+            generic-AI; the serif carries the premium tone instead. */}
+        <h3 className="font-display text-title text-ink flex items-center gap-1.5">
           {icon}
           {title}
         </h3>
@@ -393,7 +377,6 @@ export const StyleDiscoveryHome: React.FC<StyleDiscoveryHomeProps> = ({
         {forYou.length > 0 && (
           <CarouselSection
             title="For You"
-            emoji="💡"
             hairstyles={forYou}
             userCredits={userCredits}
             onSelect={onStyleSelect}
@@ -410,7 +393,6 @@ export const StyleDiscoveryHome: React.FC<StyleDiscoveryHomeProps> = ({
             <CarouselSection
               key={col._id}
               title={col.name}
-              emoji={col.emoji}
               hairstyles={col.hairstyles}
               userCredits={userCredits}
               onSelect={onStyleSelect}
