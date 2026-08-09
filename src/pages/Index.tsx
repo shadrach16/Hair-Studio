@@ -13,7 +13,7 @@ import OnboardingGuide from '@/components/OnboardingGuide';
 import HomePage from '@/components/HomePage';
 import HistoryPage from '@/components/HistoryPage';
 import MobileProfileHub from '@/components/MobileProfileHub';
-import MobileBottomNavigation from '@/components/MobileBottomNavigation';
+import { TabBar } from '@/components/ui/TabBar';
 import RewardsCenterModal from '@/components/RewardsCenterModal';
 import RateAppModal from '@/components/RateAppModal';
 import { PreGenerationSheet } from '@/components/PreGenerationSheet';
@@ -284,7 +284,7 @@ export default function StudioPage() {
   };
 
   return (
-    <div id="main-content" className="min-h-[100dvh] h-[100dvh] bg-[#f9f7f4] flex flex-col overflow-hidden">
+    <div id="main-content" className="min-h-[100dvh] h-[100dvh] bg-surface flex flex-col overflow-hidden">
       <OnboardingGuide
         isOpen={showOnboarding}
         onClose={() => handleCloseOnboarding(false)}
@@ -404,7 +404,7 @@ export default function StudioPage() {
       )}
 
       {showBottomNavigation && (
-        <MobileBottomNavigation activeTab={activeShellTab} onNavigate={handleShellNavigate} />
+        <TabBar activeTab={activeShellTab} onNavigate={handleShellNavigate} />
       )}
 
       {/* Modals */}

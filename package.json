@@ -109,6 +109,7 @@
     "globals": "^15.9.0",
     "lovable-tagger": "^1.1.7",
     "patch-package": "^8.0.1",
+    "playwright": "^1.62.1",
     "png-to-ico": "^3.0.1",
     "postcss": "^8.4.47",
     "sharp": "^0.34.5",
