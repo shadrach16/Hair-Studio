@@ -132,16 +132,25 @@ Backend already routes Pro → `gemini-3-pro-image` (best likeness per research)
 
 ## 5. Billing restructure — subscriptions with a free tier
 
-### 5.1 Unit economics (verified numbers)
+### 5.1 Unit economics + tier→model mapping (verified numbers)
 Per-generation all-in cost (image call + ~4 aux Gemini calls @ ~$0.015):
 
-| Quality | Model | API cost | All-in | Internal units |
+| Quality | Model (decision) | API cost | All-in | Internal units |
 |---|---|---|---|---|
-| Preview (Standard) | gemini-2.5-flash-image | ~$0.039 | **~$0.055** | 1 |
-| Portrait (HD) | gemini-3.1-flash-image (1K) | $0.067 | **~$0.085** | 2 |
-| Studio (Pro) | gemini-3-pro-image (1K/2K) | ~$0.24 | **~$0.26** | 4 |
+| Preview (Standard) | **gemini-3.1-flash-lite-image** — *raise the floor* (was 2.5-flash-image) | ~$0.03–0.05 | **~$0.05** | 1 |
+| Portrait (HD) | gemini-3.1-flash-image — optionally at **2K** for crisper braid/loc texture (+$0.034) | $0.067 (1K) / $0.101 (2K) | **~$0.085–0.12** | 2 |
+| Studio (Pro) | gemini-3-pro-image — best documented likeness preservation | ~$0.24 | **~$0.26** | 4 |
 
 Worst per-unit cost ≈ **$0.065** (Studio), typical ≈ $0.045–0.055.
+
+**Why not "best model for everyone":** Nano Banana Pro everywhere would cost ~$0.26/gen — a maxed free user ≈ $15/mo, Plus at ceiling ≈ $21 vs $3.99. Instead: **raise the floor** (free tier moves off the oldest model onto the 3.1 generation — the first result a new user ever sees is what converts them), and keep the quality ladder as the upgrade motivation. Quality is also lifted model-independently by the existing input gate → hair mask → output-quality-check pipeline + hardened "change only the hair" prompts.
+
+> **⏳ OPEN — model-floor validation (blocked on Gemini billing top-up):** before M4 locks
+> the mapping, run a live side-by-side — same selfie, same textured style (e.g. box
+> braids) — across 2.5-flash-image / 3.1-flash-lite / 3.1-flash / 3-pro (~$0.45 total)
+> and pick the Preview floor by eye. The 2026-07 research explicitly did NOT validate
+> textured-hair realism per model; this test closes that gap. If 3.1-lite disappoints,
+> fallback floor is keeping 2.5-flash-image (economics unchanged).
 
 ### 5.2 Tiers (daily cap for pacing + monthly ceiling for the margin floor)
 The **monthly ceiling is what guarantees you can't lose money**; the daily cap creates the comeback habit and the upgrade pressure.
@@ -193,6 +202,7 @@ Your **only real revenue to date is one-time packs** — zero subscriptions ever
 ## 7. Rollout & measurement
 
 - **Phase order:** M1–M2 (2 wks) → M3 (2 wks) → M4 billing (1 wk build + 1 wk internal-track test with real sandbox purchases) → M5 cleanup. Each phase ships as its own vc to the internal track.
+- **Prerequisite before M4:** top up Gemini prepaid billing (currently **depleted** — generation is down entirely), then run the model-floor comparison (5.1) to lock the tier→model mapping. M1–M3 are pure frontend and are NOT blocked by this.
 - **Guardrail metrics:** install→first-result rate (target >55%), time-to-first-result (<60s median), share rate per result (>15%), D1 retention (>25%), Free→Plus conversion (target 3–5% of MAU), utilization P50/P95 per tier (margin dashboard — the existing analytics events cover most of this; add `units_consumed` event).
 - **Risks:** Ionic migration regressions on the camera/purchase flows (mitigate: M3 keeps old flows behind a feature flag until parity); billing migration confusing existing users (mitigate: one-time "your credits are safe" sheet); Play review on changed billing (standard).
 
