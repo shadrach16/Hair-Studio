@@ -8,8 +8,9 @@
 // Deliberately NOT using @ionic/react-router: that package requires
 // react-router v5 and this app is on v6. Ionic components work standalone.
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { IonModal } from '@ionic/react';
+import { pushBackInterceptor } from '@/lib/native';
 import { cn } from '@/lib/utils';
 
 export interface BottomSheetProps {
@@ -41,7 +42,17 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   canDismiss = true,
   className,
   children,
-}) => (
+}) => {
+  // Register with the global hardware-back chain while open. Without this,
+  // decideBack() sees no open sheet, treats a tab root as "nothing to pop" and
+  // MINIMIZES the app — pressing back with a sheet open exited Hair Studio
+  // entirely (caught on device).
+  useEffect(() => {
+    if (!isOpen || !canDismiss) return;
+    return pushBackInterceptor(onClose);
+  }, [isOpen, canDismiss, onClose]);
+
+  return (
   <IonModal
     isOpen={isOpen}
     onDidDismiss={onClose}
@@ -61,6 +72,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4">{children}</div>
     </div>
   </IonModal>
-);
+  );
+};
 
 export default BottomSheet;

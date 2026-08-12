@@ -93,27 +93,35 @@ export function decideBack(
   return BACK_ROOTS.has(pathname) ? 'minimize' : 'navigate-back';
 }
 
-/** Register the global Android back handler. Returns an unsubscribe fn. */
+/**
+ * Register the global Android back handler. Returns an unsubscribe fn.
+ *
+ * Uses Capacitor's own `backButton` event rather than Ionic's `ionBackButton`.
+ * Ionic only dispatches `ionBackButton` when its router/IonRouterOutlet drives
+ * navigation — and this app deliberately uses Ionic components standalone with
+ * react-router v6 (@ionic/react-router requires v5). Verified on device: the
+ * Ionic event never fired, so back exited the app from any screen, including
+ * with a sheet open. Capacitor's event always fires in a Capacitor app, and
+ * registering a listener suppresses the default "exit" behaviour.
+ */
 export function registerHardwareBack(): () => void {
   if (!isNative) return () => {};
 
-  const handler = (ev: Event) => {
-    const detail = (ev as CustomEvent<{ register: (p: number, cb: () => void) => void }>).detail;
-    detail.register(10, () => {
-      switch (decideBack(backInterceptors.length > 0, window.location.pathname)) {
-        case 'close-sheet':
-          popBackInterceptor();
-          break;
-        case 'navigate-back':
-          window.history.back();
-          break;
-        case 'minimize':
-          void App.minimizeApp();
-          break;
-      }
-    });
-  };
+  const sub = App.addListener('backButton', () => {
+    switch (decideBack(backInterceptors.length > 0, window.location.pathname)) {
+      case 'close-sheet':
+        popBackInterceptor();
+        break;
+      case 'navigate-back':
+        window.history.back();
+        break;
+      case 'minimize':
+        void App.minimizeApp();
+        break;
+    }
+  });
 
-  document.addEventListener('ionBackButton', handler);
-  return () => document.removeEventListener('ionBackButton', handler);
+  return () => {
+    void sub.then((h) => h.remove());
+  };
 }
