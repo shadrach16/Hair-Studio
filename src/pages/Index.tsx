@@ -7,7 +7,7 @@ import { Capacitor } from '@capacitor/core';
 import { Button } from '@/components/ui/button';
 import AppHeader from '@/components/AppHeader';
 import AfricanHairstyleGrid from '@/components/AfricanHairstyleGrid';
-import MobileHairstyleModal from '@/components/MobileHairstyleModal';
+import LookbookSheet from '@/components/LookbookSheet';
 import PricingModal from '@/components/PricingModal';
 import HomePage from '@/components/HomePage';
 import HistoryPage from '@/components/HistoryPage';
@@ -385,22 +385,16 @@ export default function StudioPage() {
       )}
 
       {/* Modals */}
-      <MobileHairstyleModal
-        isOpen={showMobileGallery}
-        onClose={() => setShowMobileGallery(false)}
-        onHairstyleSelect={handleMobileHairstyleSelect}
-        setShowPricing={e=>{
-          if (isAuthenticated){
-          setShowPricing(e)
-
-        } else {
-          setShowAuthModal(true)
-        }
-        }}
-        selectedHairstyle={selectedHairstyle}
-        hairstyles={hairstyles}
-        userCredits={user?.credits || 0}
-      />
+      {/* Full browse surface — one sheet with chip filters + infinite grid,
+          replacing the 494-line MobileHairstyleModal. */}
+      {showMobileGallery && (
+        <LookbookSheet
+          isOpen={showMobileGallery}
+          onClose={() => setShowMobileGallery(false)}
+          onSelect={handleMobileHairstyleSelect}
+          seed={hairstyles}
+        />
+      )}
 
       <PricingModal
         isOpen={showPricing}
