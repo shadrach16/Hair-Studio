@@ -107,6 +107,10 @@ export function decideBack(
 export function registerHardwareBack(): () => void {
   if (!isNative) return () => {};
 
+  // Capacitor's own event — device-traced as the one that actually fires here.
+  // Ionic's `ionBackButton` never dispatches in this setup, so it cannot be
+  // used; Ionic's competing exit handler is disabled via
+  // setupIonicReact({ hardwareBackButton: false }) in App.tsx.
   const sub = App.addListener('backButton', () => {
     switch (decideBack(backInterceptors.length > 0, window.location.pathname)) {
       case 'close-sheet':

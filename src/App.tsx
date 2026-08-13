@@ -30,7 +30,14 @@ const queryClient = new QueryClient();
 // Force the Material Design platform so the app renders identically on every
 // device (Ionic otherwise switches to iOS styling on Apple hardware, which
 // would fight our own design system).
-setupIonicReact({ mode: 'md', rippleEffect: false, animated: true });
+// hardwareBackButton:false is essential. Ionic installs its own Capacitor
+// backButton listener whose default action is to EXIT the app, and it only
+// yields to handlers registered through its `ionBackButton` event — which it
+// never dispatches here, because that mechanism is driven by IonRouterOutlet
+// and this app uses Ionic components standalone with react-router v6.
+// Device-traced: our handler decided "close-sheet" and Ionic exited anyway.
+// Disabling it leaves registerHardwareBack() (lib/native.ts) in sole control.
+setupIonicReact({ mode: 'md', rippleEffect: false, animated: true, hardwareBackButton: false });
 
 let hasInitialized = false;
 
