@@ -324,3 +324,53 @@ So ranking by category can only ever approximate "styles for textured hair" —
 e.g. "Platinum Blonde Buzz Cut" legitimately belongs in Low Cut and will keep
 surfacing. Fixing that properly needs a separate `hairType` / `audience` field
 on the model (e.g. coily / curly / straight), not more category edits.
+
+---
+
+## Appendix — `hairType` (2026-08), which resolves the limit above
+
+`Hairstyle.hairType` (`coily | curly | wavy | straight | any`) now states the
+audience directly. Populated by `backend/scripts/classifyHairType.js` — keyword
+rules, first match wins, dry-run by default. Final distribution over 289 styles:
+
+| coily | any | straight | curly | wavy |
+|---|---|---|---|---|
+| 211 (73%) | 32 (11%) | 25 (9%) | 17 (6%) | 4 (1%) |
+
+**Consumers.** `sort=featured` in `routes/hairstyles.js` ranks coily → (curly OR
+textured category) → any → straight/wavy. `TEXTURED_MATCH` in
+`recommendationService.js` drives the For You and Trending shelves; its category
+list is deliberately narrower than `TEXTURED_CATEGORIES` — 'Low Cut' and 'Fades'
+are universal, and including them put a platinum buzz cut and a quiff on the
+first shelf a new user sees.
+
+**Keys that had to be thrown out** — recorded because they all look reasonable
+and are all wrong on this corpus, and the next person will be tempted by them:
+
+- `straight` — 95 of 289 descriptions contain it, nearly all meaning a straight
+  RAZOR, straight-BACK cornrows, a straight PARTING, or braids hanging straight
+  DOWN. Replaced with phrases that describe hair ("pin-straight", "straight
+  texture").
+- `relaxed` — overwhelmingly a mood word ("a relaxed, effortless sweep"). It had
+  labelled *Nordic Blonde Layers* and *Pensive Blonde Coat Flow* as coily.
+- `edges` — every barbering description says "clean edges", meaning the edge of
+  the cut, not edge control.
+- `natural hair` — also matches "natural hairline", "natural hair color", and
+  "the natural hair appears to be straight", which asserts the opposite. Kept,
+  but guarded by a blocked-phrase list.
+- `blonde` / `platinum` — colour, not texture. They had demoted a mid-fade and a
+  set of pink rope braids (whose own description says "protective look").
+- `curl` — matches "curled into soft sections" in European updo instructions.
+  Matched against the style NAME only now.
+- `finger wave` — spans 1920s Hollywood glam and Black hairstyling equally; it
+  was putting a European chignon in slot 5 of the feed.
+
+**Verification.** 289 styles cross-checked both directions: 2 coily entries whose
+text reads European (finger waves on pressed hair — defensible), and **zero**
+Black styles demoted to straight/wavy/any. The second direction is the one that
+matters for this app's positioning.
+
+**Known residue.** "Middle Part Bone Straight Install" is a weave worn mostly by
+Black women but is honestly `straight` in category and texture, so it ranks last.
+Fixing it would mean either lying in the texture field or adding an `isInstall`
+flag for ~2 styles; neither is worth it. Left as-is deliberately.
