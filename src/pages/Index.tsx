@@ -12,7 +12,6 @@ import PricingModal from '@/components/PricingModal';
 import HomePage from '@/components/HomePage';
 import HistoryPage from '@/components/HistoryPage';
 import MobileProfileHub from '@/components/MobileProfileHub';
-import { TabBar } from '@/components/ui/TabBar';
 import RewardsCenterModal from '@/components/RewardsCenterModal';
 import RateAppModal from '@/components/RateAppModal';
 import { PreGenerationSheet } from '@/components/PreGenerationSheet';
@@ -35,7 +34,7 @@ import AuthModal from '@/components/AuthModal';
 import { apiService } from '@/lib/api';
 
 // ✅ STYLE-FIRST FLOW COMPONENTS
-import StyleDiscoveryHome from '@/components/StyleDiscoveryHome';
+import PinterestFeed from '@/components/PinterestFeed';
 import StyleDetailSheet from '@/components/StyleDetailSheet';
 import ConfirmGenerateScreen from '@/components/ConfirmGenerateScreen';
  
@@ -146,21 +145,9 @@ export default function StudioPage() {
     switch (studioState) {
       case 'discover':
         return (
-          <StyleDiscoveryHome
-            onStyleSelect={(hairstyle) => setStyleDetailTarget(hairstyle)}
-            onLockedTap={(hairstyle) => {
-              if (!isAuthenticated) {
-                setLockedStyleTap(hairstyle);
-              } else {
-                setShowPricing(true);
-              }
-            }}
-            onUploadPhoto={handleDiscoverUpload}
-            onSeeAll={() => setShowMobileGallery(true)}
-            onCustomStyleUpload={handleCustomStyleFAB}
-            userCredits={user?.credits || 0}
-            isAuthenticated={isAuthenticated}
-            selectedPhoto={selectedPhoto}
+          <PinterestFeed
+            onSelect={(hairstyle) => setStyleDetailTarget(hairstyle)}
+            seed={hairstyles}
           />
         ); 
       case 'upload':
@@ -247,7 +234,9 @@ export default function StudioPage() {
     }
   };
 
-  const showBottomNavigation = isMobileShellEnabled && !showOnboarding && studioState !== 'processing' && studioState !== 'results';
+  // Bottom tab bar removed: the browse feed is full-bleed and navigation now
+  // lives in the header menu sheet.
+  const showBottomNavigation = false;
   const showTryOnSurface = !isMobileShellEnabled || activeShellTab === 'try-on';
   const isDiscoverState = studioState === 'discover';
   const isConfirmScreen = studioState === 'ready' && !!selectedPhoto && !!selectedHairstyle;
@@ -292,6 +281,10 @@ export default function StudioPage() {
         isAuthenticated={isAuthenticated}
         setShowPricing={setShowPricing}
         onShowAuth={() => setShowAuthModal(true)}
+        onOpenSearch={() => setShowMobileGallery(true)}
+        onNavigate={handleShellNavigate}
+        onOpenRewards={() => setShowRewardsCenter(true)}
+        onSignOut={handleSignOutWithHaptic}
       />
 
     
@@ -380,9 +373,6 @@ export default function StudioPage() {
         />
       )}
 
-      {showBottomNavigation && (
-        <TabBar activeTab={activeShellTab} onNavigate={handleShellNavigate} />
-      )}
 
       {/* Modals */}
       {/* Full browse surface — one sheet with chip filters + infinite grid,
