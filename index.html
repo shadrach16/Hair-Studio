@@ -33,6 +33,16 @@
        platform face (system-ui) — what premium native apps ship. -->
   <meta name="theme-color" content="#FAF8F5" />
   <meta name="color-scheme" content="light dark" />
+  <style>
+    /* Paint the surface the instant the HTML parses, before any bundle loads.
+       Without this the WebView shows its own default WHITE for the ~500ms
+       between the native splash handing over and index.css arriving — measured
+       on a Note 10 (Android 12) as a full half-second of pure white after an
+       otherwise correct paper splash. The colour must equal --surface in
+       index.css and splash_background in the Android resources. */
+    html { background: #FAF8F5; }
+    @media (prefers-color-scheme: dark) { html { background: #141210; } }
+  </style>
 </head>
 
 <body>

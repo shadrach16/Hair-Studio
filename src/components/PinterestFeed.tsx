@@ -105,6 +105,14 @@ export const PinterestFeed: React.FC<PinterestFeedProps> = ({
 
   return (
     <div className="flex h-full flex-col">
+      {/* THE SCROLLER. Without this the feed did not scroll at all: the root is
+          h-full and every ancestor in Index.tsx is overflow-hidden, so the
+          masonry simply overflowed and was clipped at the fold. It also meant
+          the IntersectionObserver sentinel below could never enter the viewport,
+          so infinite scroll never fired and nobody ever saw past the first page.
+          The chips live INSIDE the scroller because `sticky top-0` needs a
+          scrolling ancestor to stick to. */}
+      <div className="flex-1 overflow-y-auto overscroll-contain">
       {/* Filter chips — sticky, the only filter chrome */}
       {categories.length > 0 && (
         <div className="sticky top-0 z-10 -mx-0 bg-surface/95 backdrop-blur-sm">
@@ -165,6 +173,7 @@ export const PinterestFeed: React.FC<PinterestFeedProps> = ({
           )}
         </div>
       )}
+      </div>
     </div>
   );
 };

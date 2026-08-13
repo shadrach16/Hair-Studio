@@ -11,7 +11,10 @@ const config: CapacitorConfig = {
   android: {
     // Minimum version required is 34 to satisfy your latest dependencies
     compileSdkVersion: 34, 
-    targetSdkVersion: 34
+    targetSdkVersion: 34,
+    // The WebView's own background, behind the page. Left unset it is white,
+    // which is the colour that flashed on boot.
+    backgroundColor: '#FAF8F5'
   },
    assets: {
     icon: {
