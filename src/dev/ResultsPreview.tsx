@@ -14,6 +14,7 @@ import React, { useEffect, useState } from 'react';
 import ResultsViewer from '@/components/ResultsViewer';
 import { PREVIEW_PARAMS } from '@/dev/previewFlag';
 import ConfirmGenerateScreen from '@/components/ConfirmGenerateScreen';
+import { ProcessingState } from '@/components/studio/ProcessingState';
 
 const BEFORE =
   'https://res.cloudinary.com/djpcokxvn/image/upload/v1786138746/Hairstyles/bold_full_afro_with_vibrant_red_backdrop.jpg';
@@ -50,6 +51,19 @@ export const ConfirmPreview: React.FC = () => {
       onGenerate={() => {}}
       onBack={() => {}}
       onBuyCredits={() => {}}
+    />
+  );
+};
+
+/** ?preview=processing — the wait screen. ?progress=N pins the hairline. */
+export const ProcessingPreview: React.FC = () => {
+  const photo = useFixturePhoto();
+  if (!photo) return null;
+  return (
+    <ProcessingState
+      selectedPhoto={photo}
+      selectedHairstyle={{ name: 'Purple-Tinted Freeform Locs', id: 'preview' }}
+      progress={PREVIEW_PARAMS.has('progress') ? Number(PREVIEW_PARAMS.get('progress')) : 45}
     />
   );
 };

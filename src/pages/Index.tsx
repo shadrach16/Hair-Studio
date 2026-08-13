@@ -37,7 +37,7 @@ import { apiService } from '@/lib/api';
 import PinterestFeed from '@/components/PinterestFeed';
 import StyleDetailSheet from '@/components/StyleDetailSheet';
 import ConfirmGenerateScreen from '@/components/ConfirmGenerateScreen';
-import ResultsPreview, { ConfirmPreview } from '@/dev/ResultsPreview';
+import ResultsPreview, { ConfirmPreview, ProcessingPreview } from '@/dev/ResultsPreview';
 import { PREVIEW } from '@/dev/previewFlag';
  
 
@@ -250,6 +250,7 @@ export default function StudioPage() {
     if (import.meta.env.DEV && PREVIEW) {
       if (PREVIEW === 'results') return <ResultsPreview />;
       if (PREVIEW === 'confirm') return <ConfirmPreview />;
+      if (PREVIEW === 'processing') return <ProcessingPreview />;
     }
 
     if (showTryOnSurface) {
@@ -362,9 +363,11 @@ export default function StudioPage() {
       </div>
 
       {/* Mobile Action Bar - hidden during discover (has its own CTA), the
-          confirm screen (has its own Generate), and results (M4 §6.1: the
-          result screen is full-bleed and carries its own floating actions). */}
-      {showTryOnSurface && !isDiscoverState && !isConfirmScreen && studioState !== 'results' && (
+          confirm screen (has its own Generate), and the two full-bleed screens
+          (M4: processing and results cover the shell and carry their own
+          chrome, so the bar would sit invisible underneath them). */}
+      {showTryOnSurface && !isDiscoverState && !isConfirmScreen &&
+        studioState !== 'results' && studioState !== 'processing' && (
         <MobileActionBar
           studioState={studioState}
           selectedHairstyle={selectedHairstyle}

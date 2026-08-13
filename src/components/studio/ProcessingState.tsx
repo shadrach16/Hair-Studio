@@ -1,6 +1,20 @@
+// ProcessingState — the ~20 seconds the user spends waiting (M4).
+//
+// The previous version was a progress dashboard: a spinning conic-gradient ring
+// around a circular crop of the photo, a percentage, a progress bar, four step
+// dots and an ETA. Six separate widgets all saying "wait". That is software
+// telling you it is busy; it does not build any anticipation for the result.
+//
+// This version is the SAME PLANE the result lands on: the user's own photo,
+// full-bleed and defocused, with a slow brass shimmer passing over it. When the
+// result arrives it simply comes into focus — no layout jump between screens.
+//
+// The wait is filled with real textured-hair care notes rather than a
+// percentage. They are useful, they are on-brand for who the app is for, and
+// they make 20 seconds feel like reading rather than waiting.
+
 import React, { useState, useEffect, useMemo } from 'react';
-import { ShieldCheck } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ProcessingStateProps {
   selectedPhoto: File;
@@ -9,11 +23,16 @@ interface ProcessingStateProps {
   onComplete?: () => void;
 }
 
-const steps = [
-  { label: 'Analyzing photo', threshold: 30 },
-  { label: 'Applying style', threshold: 65 },
-  { label: 'Refining details', threshold: 90 },
-  { label: 'Finishing up', threshold: 100 },
+// Genuine care notes, not filler. Written for the catalogue's actual audience.
+const CARE_NOTES = [
+  'Satin, not cotton — cotton pillowcases pull moisture out of coils overnight.',
+  'Box braids sit best for 6–8 weeks. Take them down sooner if your edges feel tight.',
+  'Deep condition before a protective style, not after.',
+  'Wash-and-go definition comes from applying product to soaking wet hair.',
+  'Locs want retwisting about every 4–6 weeks — more often thins the roots.',
+  'Detangle from the ends upward. Starting at the root is what causes breakage.',
+  'A silk press lasts longer when the hair is fully dry before any heat.',
+  'Braids that hurt on day one will not settle. That tension is what takes edges.',
 ];
 
 export const ProcessingState: React.FC<ProcessingStateProps> = ({
@@ -22,139 +41,103 @@ export const ProcessingState: React.FC<ProcessingStateProps> = ({
   progress,
   onComplete,
 }) => {
-  const visualProgress = Math.min(Math.max(progress, 0), 99);
-  const displayProgress = Math.round(visualProgress);
-  const [countdown, setCountdown] = useState(12);
-  const [processingComplete, setProcessingComplete] = useState(false);
-
   const photoUrl = useMemo(() => URL.createObjectURL(selectedPhoto), [selectedPhoto]);
+  const [noteIndex, setNoteIndex] = useState(0);
+  const [processingComplete, setProcessingComplete] = useState(false);
+  const [countdown, setCountdown] = useState(12);
+
+  useEffect(() => () => URL.revokeObjectURL(photoUrl), [photoUrl]);
+
+  // Rotate care notes. 4.5s is long enough to finish a sentence without
+  // re-reading, short enough that a 20s wait shows several.
+  useEffect(() => {
+    const t = setInterval(() => setNoteIndex((i) => (i + 1) % CARE_NOTES.length), 4500);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
-    return () => URL.revokeObjectURL(photoUrl);
-  }, [photoUrl]);
-
-  useEffect(() => {
-    if (progress >= 99 && !processingComplete) {
-      setProcessingComplete(true);
-    }
+    if (progress >= 99 && !processingComplete) setProcessingComplete(true);
   }, [progress, processingComplete]);
 
   useEffect(() => {
     if (processingComplete && countdown > 0) {
-      const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (processingComplete && countdown === 0) {
-      onComplete?.();
+      const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+      return () => clearTimeout(t);
     }
+    if (processingComplete && countdown === 0) onComplete?.();
   }, [processingComplete, countdown, onComplete]);
 
-  const activeStepIndex = steps.findIndex(s => visualProgress < s.threshold);
-  const currentStep = steps[activeStepIndex >= 0 ? activeStepIndex : steps.length - 1];
+  const visualProgress = Math.min(Math.max(progress, 0), 99);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 py-10">
-      {/* ── Photo with animated ring ────────────────────── */}
+    <div className="fixed inset-0 z-50 overflow-hidden bg-[#0B0B0B]">
+      {/* The user's own photo, defocused. Scaled up so the blur has no soft
+          edge at the viewport boundary. */}
+      <img
+        src={photoUrl}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 h-full w-full scale-110 object-cover"
+        style={{ filter: 'blur(24px) brightness(0.78) saturate(1.15)' }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/30 to-black/40" />
+
+      {/* Slow brass sheen. This is the only motion on the screen — it reads as
+          something being worked on rather than something loading. */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.85 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="relative mb-8"
+        className="pointer-events-none absolute inset-y-0 w-2/3"
+        style={{
+          // Symmetric, gently-ramped stops. A two-stop gradient left a visible
+          // vertical seam at the trailing edge.
+          background:
+            'linear-gradient(100deg, transparent 0%, rgba(185,138,47,0.07) 30%, rgba(255,255,255,0.09) 50%, rgba(185,138,47,0.07) 70%, transparent 100%)',
+        }}
+        initial={{ x: '-60%' }}
+        animate={{ x: '260%' }}
+        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      <div
+        className="relative flex h-full flex-col items-center justify-end px-7 text-center"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 56px)' }}
       >
-        {/* Spinning gradient ring */}
-        <div className="absolute -inset-[3px] rounded-full animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_0deg,#1a1a1a,#d4d4d4,#1a1a1a)]" />
-        <div className="absolute -inset-[1px] rounded-full bg-white" />
-        <img
-          src={photoUrl}
-          alt="Your photo"
-          className="relative w-32 h-32 rounded-full object-cover"
-        />
-      </motion.div>
-
-      {/* ── Style name ──────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.4 }}
-        className="text-center mb-8"
-      >
-        <p className="text-[13px] text-gray-400 mb-1">Applying</p>
-        <h2 className="text-[22px] font-bold text-gray-900 tracking-tight leading-tight">
-          {selectedHairstyle?.name || 'Hairstyle'}
-        </h2>
-      </motion.div>
-
-      {/* ── Progress section ─────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35, duration: 0.4 }}
-        className="w-full max-w-xs space-y-4"
-      >
-        {/* Thin progress bar */}
-        <div>
-          <div className="w-full h-[5px] bg-gray-100 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-[#1a1a1a] rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${visualProgress}%` }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
-            />
-          </div>
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-[12px] font-medium text-gray-400">
-              {currentStep.label}
-            </span>
-            <span className="text-[12px] font-semibold text-gray-900 tabular-nums">
-              {displayProgress}%
-            </span>
-          </div>
-        </div>
-
-        {/* Step dots */}
-        <div className="flex items-center justify-center gap-1.5 pt-1">
-          {steps.map((step, i) => {
-            const done = activeStepIndex > i || (activeStepIndex === -1);
-            const active = activeStepIndex === i;
-            return (
-              <div key={step.label} className="flex items-center gap-1.5">
-                <div
-                  className={`h-1.5 rounded-full transition-all duration-500 ${
-                    done
-                      ? 'w-6 bg-[#1a1a1a]'
-                      : active
-                      ? 'w-6 bg-[#1a1a1a]/40'
-                      : 'w-1.5 bg-gray-200'
-                  }`}
-                />
-              </div>
-            );
-          })}
-        </div>
-
-        {/* ETA */}
-        <p className="text-center text-[11px] text-gray-300 pt-2">
-          {progress < 30
-            ? 'About 20–30 seconds'
-            : progress < 60
-            ? 'About 10–15 seconds'
-            : progress < 90
-            ? 'A few seconds left'
-            : 'Almost there'}
+        <p className="text-[11px] uppercase tracking-[0.18em] text-white/45">
+          Creating your look
         </p>
-      </motion.div>
 
-      {/* ── Refund assurance ─────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6, duration: 0.4 }}
-        className="flex items-center gap-1.5 mt-10"
-      >
-        <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-        <span className="text-[11px] text-gray-300">
-          Auto-refunded if generation fails
-        </span>
-      </motion.div>
+        <h1 className="mt-2 font-display text-[28px] italic leading-tight text-white">
+          {selectedHairstyle?.name || 'Your hairstyle'}
+        </h1>
+
+        {/* Care note — the thing that actually occupies the wait */}
+        <div className="mt-7 flex h-16 items-start justify-center">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={noteIndex}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.45 }}
+              className="max-w-[19rem] text-[13px] leading-relaxed text-white/65"
+            >
+              {CARE_NOTES[noteIndex]}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+
+        {/* One honest hairline of progress. No percentage — a number invites
+            the user to watch it, and it is an estimate anyway. */}
+        <div className="mt-2 h-px w-40 overflow-hidden bg-white/15">
+          <motion.div
+            className="h-full bg-brass"
+            initial={{ width: 0 }}
+            animate={{ width: `${visualProgress}%` }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+          />
+        </div>
+
+        <p className="mt-5 text-[11px] text-white/35">Credit back if it fails</p>
+      </div>
     </div>
   );
 };

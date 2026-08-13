@@ -374,3 +374,47 @@ matters for this app's positioning.
 Black women but is honestly `straight` in category and texture, so it ranks last.
 Fixing it would mean either lying in the texture field or adding an `isInstall`
 flag for ~2 styles; neither is worth it. Left as-is deliberately.
+
+
+---
+
+## Appendix — M4 as built (2026-08)
+
+**§6.1 Results.** Full-bleed; the result covers the shell. The
+before/compare/after segmented control is gone — press and hold peeks at the
+original, Compare gives a draggable brass-hairline divider. Style name in
+Fraunces italic over the image. One primary Share, quiet secondary glyph row,
+rating demoted below the actions. Contextual nudges are mutually exclusive
+(guest -> sign-in, low credits -> top-up, Pro -> neither).
+
+**§6.1 Quality language.** Preview / Portrait / Studio, in
+`lib/generationTiers.ts` and the backend `MODE_PRICING` labels (which are
+user-facing: they appear in the insufficient-credits error and every ledger
+line). The ids stay standard/hd/pro — that is the wire format. Four components
+that had each re-typed the old names now read from the source of truth.
+
+**§6.2 Share cards.** Shipped earlier (`lib/shareCard.ts`).
+
+**§6.3 Likeness.** `PRESERVATION_BLOCK` gained a NO BEAUTIFICATION rule and an
+identity test; PROMPT_VERSION -> v2.1.0. The block already forbade changing
+pose/features/lighting but nothing stopped the model RETOUCHING — slimming the
+jaw, smoothing skin — which is how a result stops looking like the user while
+scoring well on every other dimension. The status endpoint now returns
+`identityScore` (the scorer always computed it, it just never left the server)
+and the result screen shows "Likeness verified" above 80. **Not yet validated on
+real output — generation is down while Gemini billing is depleted.**
+
+**Processing.** Was a progress dashboard: spinning conic ring, percentage,
+progress bar, four step dots, ETA — six widgets all saying "wait". Now the same
+plane the result lands on: the user's own photo full-bleed and defocused, a slow
+brass sheen, Fraunces style name, and rotating textured-hair care notes. One
+honest brass hairline instead of a percentage.
+
+**Browser testing.** `src/dev/` adds `?preview=results|confirm|processing` with
+fixtures, plus `?guest`, `?pro`, `?credits=N`, `?identity=N`, `?progress=N`. All
+three screens were otherwise unreachable in a browser — two need a completed
+generation, and generation is down app-wide. The flag is read at module load
+because the studio hook rewrites the query string to `?studio_status=discover`
+on mount. Confirmed stripped from production builds.
+
+**Still open in M4:** CameraUpload + PermissionPrimer.
