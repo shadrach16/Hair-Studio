@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 import { ResultsActionSheet } from '@/components/studio/ResultsActionSheet';
 import { StarRating } from '@/components/StarRating';
 import { apiService } from '@/lib/api';
+import { renderShareCard } from '@/lib/shareCard';
+import { buildReferralLink } from '@/lib/attribution';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ResultsViewerProps {
@@ -166,11 +168,21 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
     setIsCreatingCollage(true);
     const tid = toast.loading('Creating before & after...');
     try {
-      const blob = await createCollageImage();
+      // Editorial before/after card instead of the old white side-by-side with
+      // sans "Before/After" labels — that read as a tool's output, not something
+      // anyone would post.
+      const blob = await renderShareCard('beforeAfter', {
+        afterUrl: afterImageUrl,
+        beforeUrl: beforeImageUrl,
+        styleName: selectedHairstyle?.name,
+        hideWatermark: isPro,
+      });
       if (!blob) { toast.dismiss(tid); toast.error('Failed to create collage'); setIsCreatingCollage(false); return; }
 
       const title = 'Check out my transformation!';
-      const refLink = referralCode ? `\n\nTry it: https://hairstudio.app/?ref=${referralCode}` : '';
+      // Real deep link (deferred-install aware). https://hairstudio.app does not
+      // exist — every shared referral link was pointing at a dead domain.
+      const refLink = referralCode ? `\n\nTry it: ${buildReferralLink(referralCode)}` : '';
       const text = `Before & After: I tried '${selectedHairstyle?.name || 'new'}' with Hair Studio AI!${refLink}`;
 
       if (Capacitor.isNativePlatform()) {
@@ -203,15 +215,23 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
   const handleShare = async () => {
     if (!afterImageUrl) { toast.error('Image not available'); return; }
     const title = 'Check out my new look!';
-    const refLink = referralCode ? `\n\n3 free credits: https://hairstudio.app/?ref=${referralCode}` : '';
+    const refLink = referralCode ? `\n\nFree credits: ${buildReferralLink(referralCode)}` : '';
     const text = `I tried '${selectedHairstyle?.name || 'new'}' with Hair Studio AI!${refLink}`;
     const tid = toast.loading('Preparing...');
     try {
+      // Editorial card, not the raw render: the exported image is the user's
+      // photo set like a lookbook page, which is what people are willing to
+      // post. Falls back to the raw image if the card can't be drawn.
+      const card = await renderShareCard('editorial', {
+        afterUrl: afterImageUrl,
+        styleName: selectedHairstyle?.name,
+        hideWatermark: isPro,
+      });
+
       if (Capacitor.isNativePlatform()) {
-        const resp = await fetch(afterImageUrl);
-        const blob = await resp.blob();
+        const blob = card || (await (await fetch(afterImageUrl)).blob());
         const b64 = await blobToBase64(blob);
-        const fn = `hairstyle_${Date.now()}.jpg`;
+        const fn = `hairstyle_${Date.now()}.${card ? 'png' : 'jpg'}`;
         await Filesystem.writeFile({ path: fn, data: b64, directory: Directory.Cache });
         const { uri } = await Filesystem.getUri({ directory: Directory.Cache, path: fn });
         toast.dismiss(tid);
@@ -220,9 +240,10 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
         setTimeout(async () => { try { await Filesystem.deleteFile({ path: fn, directory: Directory.Cache }); } catch {} }, 2000);
         return;
       }
-      const resp = await fetch(afterImageUrl);
-      const blob = await resp.blob();
-      const file = new File([blob], 'hairstyle.jpg', { type: 'image/jpeg' });
+      const blob = card || (await (await fetch(afterImageUrl)).blob());
+      const file = new File([blob], card ? 'hairstyle.png' : 'hairstyle.jpg', {
+        type: card ? 'image/png' : 'image/jpeg',
+      });
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         toast.dismiss(tid);
         await navigator.share({ title, text, files: [file] });
@@ -398,7 +419,7 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
         // URL
         ctx.fillStyle = 'rgba(255,255,255,0.45)';
         ctx.font = '18px system-ui, -apple-system, sans-serif';
-        ctx.fillText('hairstudio.app', W / 2, H - 36);
+        ctx.fillText('@ShadHairStudio', W / 2, H - 36);
 
         canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.92);
       };
