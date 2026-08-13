@@ -16,6 +16,13 @@ import { apiService, type Hairstyle } from '@/lib/api';
 import { PinCard } from '@/components/ui/PinCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { cn } from '@/lib/utils';
+import {
+  AUDIENCE_OPTIONS,
+  audienceQuery,
+  getAudience,
+  setAudience,
+  type Audience,
+} from '@/lib/audience';
 
 const PAGE_SIZE = 30;
 
@@ -33,6 +40,9 @@ export const PinterestFeed: React.FC<PinterestFeedProps> = ({
 }) => {
   const [categories, setCategories] = useState<string[]>(seedCategories || []);
   const [active, setActive] = useState('All');
+  // Read once on mount so the feed's very first request is already filtered —
+  // reading it later would fetch everything and then visibly re-fetch.
+  const [audience, setAudienceState] = useState<Audience>(() => getAudience());
   const [items, setItems] = useState<Hairstyle[]>(seed);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -56,11 +66,12 @@ export const PinterestFeed: React.FC<PinterestFeedProps> = ({
         // browse surface, so an unbiased popularity sort put European styles
         // at the top of the first screen everyone sees.
         sort: 'featured',
+        ...audienceQuery(audience),
         ...(category !== 'All' ? { category } : {}),
       } as any);
       return res?.data?.hairstyles || res?.data || [];
     },
-    []
+    [audience]
   );
 
   // Reset on filter change.
@@ -116,6 +127,31 @@ export const PinterestFeed: React.FC<PinterestFeedProps> = ({
       {/* Filter chips — sticky, the only filter chrome */}
       {categories.length > 0 && (
         <div className="sticky top-0 z-10 -mx-0 bg-surface/95 backdrop-blur-sm">
+          {/* Who the feed is for. A preference rather than an onboarding
+              question: the default shows everything, one tap narrows it, and it
+              is changed from the surface it affects instead of being answered
+              once at install and never revisited. */}
+          <div className="flex items-center gap-1 px-3 pt-2">
+            {AUDIENCE_OPTIONS.map((o) => {
+              const on = o.id === audience;
+              return (
+                <button
+                  key={o.id}
+                  onClick={() => {
+                    setAudienceState(o.id);
+                    setAudience(o.id);
+                  }}
+                  aria-pressed={on}
+                  className={cn(
+                    'rounded-full px-3 py-1 text-caption transition-colors',
+                    on ? 'bg-brass/12 font-medium text-brass-ink' : 'text-ink-3 active:text-ink-2'
+                  )}
+                >
+                  {o.label}
+                </button>
+              );
+            })}
+          </div>
           <div className="overflow-x-auto scrollbar-none">
             <div className="flex gap-2 px-3 py-2" style={{ width: 'max-content' }}>
               {categories.map((c) => (
