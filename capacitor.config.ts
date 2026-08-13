@@ -18,7 +18,9 @@ const config: CapacitorConfig = {
       source: 'app-icon.png' 
     },
     splash: {
-      backgroundColor: '#ffffff',
+      // --surface, not white. This and the five other surface-colour sites must
+      // be byte-identical or the launch flashes; scripts/gen-splash.cjs checks.
+      backgroundColor: '#FAF8F5',
     }
   },
   plugins: {
@@ -37,7 +39,21 @@ const config: CapacitorConfig = {
       "StatusBar": {
       "overlaysWebView": false,
       "style": "LIGHT",
-      "backgroundColor": "#ffffff"
+      // The one-plane rule: status bar, splash and page share one surface colour.
+      // lib/native.ts repaints this per screen; this is the boot value.
+      "backgroundColor": "#FAF8F5"
+    },
+    "SplashScreen": {
+      // Hand off as soon as the WebView has painted rather than sitting on a
+      // timer. The old config had no SplashScreen block at all, so it used the
+      // 500ms default fade with autoHide on a fixed delay.
+      "launchAutoHide": true,
+      "launchFadeOutDuration": 200,
+      "backgroundColor": "#FAF8F5",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "splashFullScreen": false,
+      "splashImmersive": false
     },
       "PushNotifications": {
       "presentationOptions": ["badge", "sound", "alert"]
