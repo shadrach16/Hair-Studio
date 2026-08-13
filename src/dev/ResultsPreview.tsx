@@ -17,6 +17,7 @@ import ConfirmGenerateScreen from '@/components/ConfirmGenerateScreen';
 import { ProcessingState } from '@/components/studio/ProcessingState';
 import { PermissionPrimer } from '@/components/ui/PermissionPrimer';
 import CameraUpload from '@/components/CameraUpload';
+import PaywallSheet from '@/components/PaywallSheet';
 
 const BEFORE =
   'https://res.cloudinary.com/djpcokxvn/image/upload/v1786138746/Hairstyles/bold_full_afro_with_vibrant_red_backdrop.jpg';
@@ -56,6 +57,18 @@ export const ConfirmPreview: React.FC = () => {
     />
   );
 };
+
+/** ?preview=paywall[&tier=plus] — the M5 tier sheet. */
+export const PaywallPreview: React.FC = () => (
+  <PaywallSheet
+    isOpen
+    onClose={() => {}}
+    currentTier={(PREVIEW_PARAMS.get('tier') as any) || 'free'}
+    onSubscribe={async () => {}}
+    onTopUp={() => {}}
+    reason={PREVIEW_PARAMS.has('capped') ? "You've used today's looks." : undefined}
+  />
+);
 
 /** ?preview=photo — the "Add your photo" screen with a style selected. */
 export const PhotoPreview: React.FC = () => (
