@@ -15,6 +15,7 @@ import ResultsViewer from '@/components/ResultsViewer';
 import { PREVIEW_PARAMS } from '@/dev/previewFlag';
 import ConfirmGenerateScreen from '@/components/ConfirmGenerateScreen';
 import { ProcessingState } from '@/components/studio/ProcessingState';
+import { PermissionPrimer } from '@/components/ui/PermissionPrimer';
 
 const BEFORE =
   'https://res.cloudinary.com/djpcokxvn/image/upload/v1786138746/Hairstyles/bold_full_afro_with_vibrant_red_backdrop.jpg';
@@ -54,6 +55,17 @@ export const ConfirmPreview: React.FC = () => {
     />
   );
 };
+
+/** ?preview=primer[&kind=photos] — the permission sheet is native-gated, so it
+ *  never appears in a browser without this. */
+export const PrimerPreview: React.FC = () => (
+  <PermissionPrimer
+    isOpen
+    kind={(PREVIEW_PARAMS.get('kind') as any) || 'camera'}
+    onClose={() => {}}
+    onContinue={() => {}}
+  />
+);
 
 /** ?preview=processing — the wait screen. ?progress=N pins the hairline. */
 export const ProcessingPreview: React.FC = () => {

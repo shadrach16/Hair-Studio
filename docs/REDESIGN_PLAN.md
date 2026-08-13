@@ -417,4 +417,17 @@ generation, and generation is down app-wide. The flag is read at module load
 because the studio hook rewrites the query string to `?studio_status=discover`
 on mount. Confirmed stripped from production builds.
 
-**Still open in M4:** CameraUpload + PermissionPrimer.
+**PermissionPrimer.** `CameraUpload` called `CapacitorCamera.getPhoto()` cold —
+the Android dialog appeared with no context and a denial dead-ended at "Camera
+access denied or operation cancelled". On Android a second denial is permanent,
+so a refused cold ask could lock a user out of the app's only real feature for
+good. A primer now precedes both the camera and library paths (native only —
+on web the file input needs no permission and a sheet would be noise), shown
+once per permission and marked seen only on Continue, so "Not now" is a soft
+exit that does not spend the one-shot OS ask.
+
+Copy is deliberately accurate rather than reassuring: the photo IS uploaded —
+that is where styling happens — so the sheet says so instead of implying it
+stays on device.
+
+**M4 is complete.** Next: M5 billing tiers.

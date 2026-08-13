@@ -37,7 +37,7 @@ import { apiService } from '@/lib/api';
 import PinterestFeed from '@/components/PinterestFeed';
 import StyleDetailSheet from '@/components/StyleDetailSheet';
 import ConfirmGenerateScreen from '@/components/ConfirmGenerateScreen';
-import ResultsPreview, { ConfirmPreview, ProcessingPreview } from '@/dev/ResultsPreview';
+import ResultsPreview, { ConfirmPreview, ProcessingPreview, PrimerPreview } from '@/dev/ResultsPreview';
 import { PREVIEW } from '@/dev/previewFlag';
  
 
@@ -251,6 +251,7 @@ export default function StudioPage() {
       if (PREVIEW === 'results') return <ResultsPreview />;
       if (PREVIEW === 'confirm') return <ConfirmPreview />;
       if (PREVIEW === 'processing') return <ProcessingPreview />;
+      if (PREVIEW === 'primer') return <PrimerPreview />;
     }
 
     if (showTryOnSurface) {

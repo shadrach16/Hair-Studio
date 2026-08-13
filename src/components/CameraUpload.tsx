@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { apiService } from '@/lib/api';
+import { PermissionPrimer, type PermissionKind } from '@/components/ui/PermissionPrimer';
 import {
   Camera,
   Upload,
@@ -60,6 +61,12 @@ const dataURLtoFile = (dataurl: string, filename: string, mimeType: string) => {
 
 // --- MAIN COMPONENT ---
 
+// The primer is shown once per permission. After the OS has been asked, showing
+// it again on every capture is friction, not clarity.
+const PRIMER_KEY = 'hairstudio_primer_seen_';
+const hasSeenPrimer = (k: PermissionKind) => !!localStorage.getItem(PRIMER_KEY + k);
+const markPrimerSeen = (k: PermissionKind) => localStorage.setItem(PRIMER_KEY + k, '1');
+
 export default function CameraUpload({
   onPhotoSelect,
   onClearPhoto,
@@ -76,6 +83,9 @@ export default function CameraUpload({
   // const [dragActive, setDragActive] = useState(false); 
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [cameraError, setCameraError] = useState<string | null>(null);
+  // Which primer to show before the OS dialog, if any (M4). Native only — on
+  // web the browser shows its own contextual prompt and a second sheet is noise.
+  const [primer, setPrimer] = useState<PermissionKind | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const navigate = useNavigate();
@@ -134,6 +144,13 @@ export default function CameraUpload({
   const capturePhoto = useCallback(async () => {
     setCameraError(null);
     triggerHapticFeedback(ImpactStyle.Medium);
+
+    // Explain before the OS asks. Once per permission: after the user has
+    // granted (or seen it), going through the primer every time is friction.
+    if (isNative && !hasSeenPrimer('camera')) {
+      setPrimer('camera');
+      return;
+    }
 
     if (isNative) {
       // --- NATIVE CAMERA PATH ---
@@ -229,6 +246,11 @@ export default function CameraUpload({
     triggerHapticFeedback(ImpactStyle.Light);
     setCameraError(null);
     // 💡 We no longer setMode('upload'). We stay in 'choice' mode.
+
+    if (isNative && !hasSeenPrimer('photos')) {
+      setPrimer('photos');
+      return;
+    }
 
     if (isNative) {
       // --- NATIVE GALLERY/PHOTOS PATH ---
@@ -429,6 +451,22 @@ export default function CameraUpload({
   if (mode === 'choice') {
     return (
       <div className="w-full  mx-auto flex flex-col items-center ">
+        {/* Shown before the OS dialog. Rendered only in this branch because the
+            capture and library buttons that raise it live only here. */}
+        <PermissionPrimer
+          isOpen={primer !== null}
+          kind={primer ?? 'camera'}
+          onClose={() => setPrimer(null)}
+          onContinue={() => {
+            const kind = primer;
+            setPrimer(null);
+            if (!kind) return;
+            markPrimerSeen(kind);
+            // Re-enter the same handler; the primer gate is now satisfied.
+            if (kind === 'camera') capturePhoto();
+            else handleUploadClick();
+          }}
+        />
         <input
           ref={fileInputRef}
           type="file"
