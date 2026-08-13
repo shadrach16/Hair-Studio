@@ -16,7 +16,7 @@
 
 import React, { useState } from 'react';
 import { IonIcon } from '@ionic/react';
-import { checkmark, closeOutline } from 'ionicons/icons';
+import { checkmark } from 'ionicons/icons';
 import { TIERS, DEFAULT_TIER, priceLabel, type TierId, type Tier } from '@/lib/tiers';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { cn } from '@/lib/utils';
@@ -34,9 +34,14 @@ interface PaywallSheetProps {
   reason?: string;
 }
 
-export const PaywallSheet: React.FC<PaywallSheetProps> = ({
-  isOpen,
-  onClose,
+/**
+ * The tier cards plus their single CTA, with no chrome of its own — so it can be
+ * dropped into the existing PricingModal instead of nesting a second sheet
+ * (which would mean two drag handles and two backdrops).
+ */
+export const TierChooser: React.FC<Omit<PaywallSheetProps, 'isOpen' | 'onClose'> & {
+  onClose?: () => void;
+}> = ({
   currentTier = 'free',
   onSubscribe,
   onTopUp,
@@ -59,24 +64,14 @@ export const PaywallSheet: React.FC<PaywallSheetProps> = ({
   };
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} breakpoints={[0, 0.92]} initialBreakpoint={0.92}>
       <div className="pb-2">
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <div>
-            <h2 className="font-display text-[26px] leading-tight text-ink">
-              Style without counting
-            </h2>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-ink-2">
-              {reason || 'Every look you try, every day — no credits to track.'}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            className="mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface text-ink-3 ring-1 ring-hairline"
-          >
-            <IonIcon icon={closeOutline} style={{ fontSize: 18 }} />
-          </button>
+        <div className="mb-5">
+          <h2 className="font-display text-[26px] leading-tight text-ink">
+            Style without counting
+          </h2>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-ink-2">
+            {reason || 'Every look you try, every day — no credits to track.'}
+          </p>
         </div>
 
         <div className="space-y-2.5">
@@ -128,9 +123,15 @@ export const PaywallSheet: React.FC<PaywallSheetProps> = ({
           </button>
         )}
       </div>
-    </BottomSheet>
   );
 };
+
+/** The standalone sheet, kept for surfaces that are not already in a modal. */
+export const PaywallSheet: React.FC<PaywallSheetProps> = ({ isOpen, onClose, ...rest }) => (
+  <BottomSheet isOpen={isOpen} onClose={onClose} breakpoints={[0, 0.92]} initialBreakpoint={0.92}>
+    <TierChooser {...rest} onClose={onClose} />
+  </BottomSheet>
+);
 
 const TierCard: React.FC<{
   tier: Tier;

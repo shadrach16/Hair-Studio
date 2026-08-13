@@ -41,7 +41,7 @@ export default function AuthModal({
     localStorage.setItem("studio_status", currentStatus);
   },[])
 
-  const resolvedTitle = title || (variant === 'credits' ? 'Get 5 Free Credits' : 'Sign in to continue');
+  const resolvedTitle = title || (variant === 'credits' ? 'Start with free looks' : 'Sign in to continue');
   const resolvedDescription = description || (variant === 'credits' 
     ? 'Create a free account to unlock all hairstyles and start trying them on.' 
     : 'Sign in to choose any hairstyles');
@@ -111,7 +111,7 @@ export default function AuthModal({
                       {/* Credits badge */}
                       <div className="mt-5 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-50 ring-1 ring-black/[0.04]">
                         <Coins className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm font-bold text-gray-900">5 free credits</span>
+                        <span className="text-sm font-bold text-gray-900">Free looks</span>
                         <span className="text-[11px] text-gray-400">on sign up</span>
                       </div>
 

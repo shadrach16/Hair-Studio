@@ -129,7 +129,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           />
           <MenuRow
             icon={giftOutline}
-            label="Free credits & referrals"
+            label="Free looks & referrals"
             onClick={() => {
               setMenuOpen(false);
               onOpenRewards?.();

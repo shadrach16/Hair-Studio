@@ -7,6 +7,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { Coins, X, ShieldCheck, Gift, ChevronRight } from 'lucide-react';
 import AuthModal from './AuthModal';
 import { cn } from '@/lib/utils';
+import { TierChooser } from '@/components/PaywallSheet';
+import { BASE_GENERATION_COST } from '@/lib/generationTiers';
+import { usePayment } from '@/hooks/usePayment';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Capacitor } from '@capacitor/core';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -29,6 +32,14 @@ interface PricingModalProps {
 export default function PricingModal({ isOpen, onClose, onOpenRewards, context }: PricingModalProps) {
   const { user, isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const { buySubscription } = usePayment();
+
+  // Credits are still the live currency until tier enforcement is switched on.
+  // The UI stops SAYING "credits" — it reports what the balance buys, at the
+  // Preview rate, which is the same conversion LooksChip uses so the header and
+  // this sheet can never disagree.
+  const looksLeft = Math.floor(Number(user?.credits || 0) / BASE_GENERATION_COST);
+  const currentTier = (user as any)?.entitlement?.tier || 'free';
 
   const handleAuthSuccess = () => {
     setShowAuthModal(false);
@@ -72,8 +83,10 @@ export default function PricingModal({ isOpen, onClose, onOpenRewards, context }
                 </div>
 
                 <div className="flex items-center justify-between px-5 py-3">
+                  {/* Was "Get Credits" — a title that describes a refill, not a
+                      product. The sheet now leads with the tiers. */}
                   <h2 className="text-[18px] font-bold text-gray-900 tracking-tight">
-                    Get Credits
+                    Your plan
                   </h2>
                   <button
                     onClick={() => {
@@ -94,9 +107,11 @@ export default function PricingModal({ isOpen, onClose, onOpenRewards, context }
                         <Coins className="w-4 h-4 text-white" />
                       </div>
                       <div>
-                        <p className="text-[11px] text-gray-400 leading-none">Your balance</p>
+                        <p className="text-[11px] text-gray-400 leading-none">Left to use</p>
                         <p className="text-[16px] font-bold text-gray-900 leading-tight tabular-nums">
-                          {Number(user?.credits || 0).toFixed(0)} <span className="text-[12px] font-medium text-gray-400">credits</span>
+                          {looksLeft} <span className="text-[12px] font-medium text-gray-400">
+                            {looksLeft === 1 ? 'look' : 'looks'}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -106,6 +121,25 @@ export default function PricingModal({ isOpen, onClose, onOpenRewards, context }
 
               {/* ── Packs ────────────────────────────────── */}
               <div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-4">
+                {/* Tiers first (plan 7.4). Packs stay below because they are the
+                    only thing this app has ever actually sold, and the over-cap
+                    moment is exactly when someone wants one — but they no longer
+                    lead. */}
+                <TierChooser
+                  currentTier={currentTier}
+                  onSubscribe={async (productId) => {
+                    await buySubscription(productId);
+                  }}
+                />
+
+                <div className="my-5 flex items-center gap-3">
+                  <span className="h-px flex-1 bg-gray-100" />
+                  <span className="text-[11px] uppercase tracking-wider text-gray-400">
+                    Or top up
+                  </span>
+                  <span className="h-px flex-1 bg-gray-100" />
+                </div>
+
                 {Capacitor.isNativePlatform() ? (
                   <PaywallScreen onClose={onClose} context={context} />
                 ) : (

@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, Coins, Clock, ShieldCheck, ArrowRight, Image as ImageIcon, Aperture, Gem } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { type Hairstyle } from '@/lib/api';
-import { GENERATION_TIERS, tierCost } from '@/lib/generationTiers';
+import { GENERATION_TIERS, tierCost, BASE_GENERATION_COST } from '@/lib/generationTiers';
 import { cn } from '@/lib/utils';
 
 // Name, cost and description ALL come from lib/generationTiers now. They used
@@ -70,8 +70,9 @@ export const ConfirmGenerateScreen: React.FC<ConfirmGenerateScreenProps> = ({
           <span className="text-sm font-medium">Back</span>
         </button>
         <div className="flex items-center gap-1 px-2.5 py-1 bg-amber-50 rounded-full">
-          <Coins className="w-3.5 h-3.5 text-amber-500" />
-          <span className="text-xs font-bold text-amber-700">{userCredits}</span>
+          <span className="text-xs font-bold text-amber-700">
+            {Math.floor(userCredits / BASE_GENERATION_COST)} left
+          </span>
         </div>
       </div>
 
@@ -145,13 +146,19 @@ export const ConfirmGenerateScreen: React.FC<ConfirmGenerateScreenProps> = ({
                 )}>
                   {mode.label}
                 </span>
-                <span className="text-[10px] text-gray-400">{cost} cr</span>
+                {/* Was "{cost} cr". Nobody knows what a credit is worth; the
+                    same number expressed in looks needs no conversion. */}
+                <span className="text-[10px] text-gray-400">
+                  {cost / BASE_GENERATION_COST === 1
+                    ? '1 look'
+                    : `${cost / BASE_GENERATION_COST} looks`}
+                </span>
               </button>
             );
           })}
         </div>
 
-        {/* Mode description — shows benefit or "need more credits" hint */}
+        {/* Mode description — shows the benefit, or the shortfall in looks */}
         {(() => {
           const mode = GENERATION_MODES.find(m => m.id === selectedMode)!;
           // Flat tier cost — `multiplier` no longer exists on the tier objects.
@@ -165,7 +172,10 @@ export const ConfirmGenerateScreen: React.FC<ConfirmGenerateScreenProps> = ({
             )}>
               {affordable
                 ? mode.desc
-                : `Need ${needMore} more credit${needMore !== 1 ? 's' : ''} — ${mode.desc.toLowerCase()}`
+                : (() => {
+                    const short = Math.ceil(needMore / BASE_GENERATION_COST);
+                    return `Need ${short} more look${short !== 1 ? 's' : ''} — ${mode.desc.toLowerCase()}`;
+                  })()
               }
             </p>
           );
@@ -180,7 +190,7 @@ export const ConfirmGenerateScreen: React.FC<ConfirmGenerateScreenProps> = ({
         </span>
         <span className="flex items-center gap-1.5 text-[12px] text-gray-400">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          Credit back if it fails
+          Not charged if it fails
         </span>
       </div>
 
@@ -192,20 +202,24 @@ export const ConfirmGenerateScreen: React.FC<ConfirmGenerateScreenProps> = ({
         >
           Generate
           <span className="ml-2 flex items-center gap-1 px-2 py-0.5 bg-white/15 rounded-full text-[12px]">
-            <Coins className="w-3 h-3" />
-            {creditCost}
+            {creditCost / BASE_GENERATION_COST === 1
+              ? '1 look'
+              : `${creditCost / BASE_GENERATION_COST} looks`}
           </span>
         </Button>
       ) : (
         <div className="space-y-2.5">
           <p className="text-center text-[12px] text-amber-600 font-medium">
-            You need {creditCost - userCredits} more credit{creditCost - userCredits !== 1 ? 's' : ''}
+            {(() => {
+              const short = Math.ceil((creditCost - userCredits) / BASE_GENERATION_COST);
+              return `You need ${short} more look${short !== 1 ? 's' : ''}`;
+            })()}
           </p>
           <Button
             onClick={onBuyCredits}
             className="w-full h-14 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-2xl text-base font-semibold shadow-md transition-all active:scale-[0.98]"
           >
-            Get More Credits
+            Get more looks
           </Button>
         </div>
       )}
