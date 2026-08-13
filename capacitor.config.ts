@@ -53,7 +53,10 @@ const config: CapacitorConfig = {
       "launchAutoHide": true,
       "launchFadeOutDuration": 200,
       "backgroundColor": "#FAF8F5",
-      "androidScaleType": "CENTER_CROP",
+      "launchShowDuration": 1000,
+      // FIT_CENTER, not CENTER_CROP: the layer-list's intrinsic size is the
+      // 170dp mark, so CENTER_CROP would scale it about 5x to fill the screen.
+      "androidScaleType": "FIT_CENTER",
       "showSpinner": false,
       "splashFullScreen": false,
       "splashImmersive": false

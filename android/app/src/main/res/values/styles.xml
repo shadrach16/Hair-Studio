@@ -31,7 +31,13 @@
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_monogram</item>
-        <item name="android:background">@drawable/splash</item>
+        <!-- windowBackground, NOT background: the latter is a view attribute and
+             the starting window ignores it. Logcat on a Note 10 (Android 12)
+             reported suggestType=3, LEGACY_SPLASH_SCREEN, which draws ONLY
+             windowBackground, so the mark never appeared while the colour did.
+             Pointing windowBackground at the layer-list makes the legacy path
+             draw the whole composition. -->
+        <item name="android:windowBackground">@drawable/splash</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>

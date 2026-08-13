@@ -42,10 +42,37 @@
        index.css and splash_background in the Android resources. */
     html { background: #FAF8F5; }
     @media (prefers-color-scheme: dark) { html { background: #141210; } }
+
+    /* The splash beat, drawn by the HTML itself.
+       The Android 12 system splash reliably paints windowSplashScreenBackground
+       but would not render windowSplashScreenAnimatedIcon on the test device
+       (a Note 10 / One UI 4) — verified by recording the launch and finding the
+       centre of every frame a perfectly uniform #FAF8F5, and by pointing
+       windowBackground at a red drawable and still getting paper. Rather than
+       depend on OEM behaviour for the brand moment, the mark is drawn here: it
+       appears the instant the HTML parses, on the same colour the system splash
+       already showed, so the two beats read as one continuous screen.
+       Removed by src/main.tsx once React has mounted. */
+    #boot {
+      position: fixed; inset: 0; display: grid; place-items: center;
+      background: #FAF8F5; z-index: 2147483647;
+      transition: opacity .28s ease; font-family: 'Fraunces Variable', Fraunces, Georgia, serif;
+      color: #B98A2F; font-weight: 600; font-size: 46px; letter-spacing: -.02em;
+    }
+    #boot .rule { width: 58px; height: 2px; background: #B98A2F; opacity: .45; margin-top: 14px; }
+    #boot.gone { opacity: 0; pointer-events: none; }
+    @media (prefers-color-scheme: dark) {
+      #boot { background: #141210; color: #D4A94C; }
+      #boot .rule { background: #D4A94C; }
+    }
   </style>
 </head>
 
 <body>
+  <!-- Removed by main.tsx on mount. Inline so it needs no bundle. -->
+  <div id="boot"><div style="display:flex;flex-direction:column;align-items:center">
+    <div>Hair Studio</div><div class="rule"></div>
+  </div></div>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=AW-384373489"></script>
   <script>

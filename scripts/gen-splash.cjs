@@ -157,7 +157,40 @@ const STYLES_XML = `<?xml version="1.0" encoding="utf-8"?>
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_monogram</item>
-        <item name="android:background">@drawable/splash</item>
+        <!-- windowBackground, NOT background: the latter is a view attribute and
+             the starting window ignores it. Logcat on a Note 10 (Android 12)
+             reported suggestType=3, LEGACY_SPLASH_SCREEN, which draws ONLY
+             windowBackground, so the mark never appeared while the colour did.
+             Pointing windowBackground at the layer-list makes the legacy path
+             draw the whole composition. -->
+        <item name="android:windowBackground">@drawable/splash</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+    </style>
+</resources>
+`;
+
+
+// API 31+ reads the PLATFORM attributes (android:windowSplashScreen*). The
+// unprefixed ones in values/styles.xml are androidx compat aliases, consumed by
+// installSplashScreen() on older releases. On a Note 10 running Android 12 the
+// background applied but the icon never did, which is exactly what an unmapped
+// alias looks like — so the platform names are declared explicitly here.
+const STYLES_V31_XML = `<?xml version="1.0" encoding="utf-8"?>
+<!-- Written by scripts/gen-splash.cjs. Android 12+ only. -->
+<resources>
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_monogram</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_background</item>
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_monogram</item>
+        <!-- windowBackground, NOT background: the latter is a view attribute and
+             the starting window ignores it. Logcat on a Note 10 (Android 12)
+             reported suggestType=3, LEGACY_SPLASH_SCREEN, which draws ONLY
+             windowBackground, so the mark never appeared while the colour did.
+             Pointing windowBackground at the layer-list makes the legacy path
+             draw the whole composition. -->
+        <item name="android:windowBackground">@drawable/splash</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>
@@ -199,7 +232,8 @@ function assertXmlCommentsValid(name, xml) {
 
 (async () => {
   for (const [n, x] of [['splash.xml', SPLASH_XML], ['colors.xml', COLORS_XML],
-                        ['colors-night.xml', COLORS_NIGHT_XML], ['styles.xml', STYLES_XML]]) {
+                        ['colors-night.xml', COLORS_NIGHT_XML], ['styles.xml', STYLES_XML],
+                        ['styles-v31.xml', STYLES_V31_XML]]) {
     assertXmlCommentsValid(n, x);
   }
 
@@ -253,7 +287,9 @@ function assertXmlCommentsValid(name, xml) {
   fs.mkdirSync(path.join(RES, 'values-night'), { recursive: true });
   fs.writeFileSync(path.join(RES, 'values-night/colors.xml'), COLORS_NIGHT_XML);
   fs.writeFileSync(path.join(RES, 'values/styles.xml'), STYLES_XML);
-  console.log('  drawable/splash.xml, values{,-night}/colors.xml, values/styles.xml');
+  fs.mkdirSync(path.join(RES, 'values-v31'), { recursive: true });
+  fs.writeFileSync(path.join(RES, 'values-v31/styles.xml'), STYLES_V31_XML);
+  console.log('  drawable/splash.xml, values{,-night,-v31}/*.xml');
 
   // 4. Report on the sites this script cannot write.
   const problems = checkUnownedSites();
