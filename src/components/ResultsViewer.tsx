@@ -1,12 +1,40 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Loader2, Share2, Download, RotateCcw, Crown, Bookmark, BookmarkCheck, RefreshCw, Scissors, ArrowUpRight, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
+// ResultsViewer — the result screen (M4 §6.1).
+//
+// This is where "doesn't feel AI-generated" is won: people post what makes
+// THEM look good, so the result gets the whole screen and the chrome gets out
+// of the way.
+//
+// What changed from the previous version:
+//  - Full-bleed. The result was a 4:5 card inside a scroll container inside the
+//    app shell — a card-in-a-card, with the photo occupying maybe half the
+//    screen. It now covers everything (fixed inset-0), controls float over it.
+//  - The before/after segmented control is gone. Three tabs to look at two
+//    images is tool UI. Instead: press and hold anywhere to peek at the
+//    original, or tap Compare for a draggable divider.
+//  - Style name is set in Fraunces italic over the image like a lookbook
+//    caption, not stacked above it in a bold sans heading.
+//  - The desktop action grid is gone — this app ships mobile-only.
+//  - ~60 lines of dead canvas code (createCollageImage) removed: it was
+//    superseded by lib/shareCard.ts and never called.
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { IonIcon } from '@ionic/react';
+import {
+  shareOutline,
+  downloadOutline,
+  bookmarkOutline,
+  bookmark,
+  cutOutline,
+  refreshOutline,
+  closeOutline,
+  swapHorizontalOutline,
+} from 'ionicons/icons';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { ResultsActionSheet } from '@/components/studio/ResultsActionSheet';
 import { StarRating } from '@/components/StarRating';
 import { apiService } from '@/lib/api';
 import { renderShareCard } from '@/lib/shareCard';
@@ -33,6 +61,11 @@ const triggerHaptic = async (style: ImpactStyle = ImpactStyle.Light) => {
   try { if (Capacitor.isNativePlatform()) await Haptics.impact({ style }); } catch {}
 };
 
+// A free half-stop of perceived quality. The model's output is flat-ish out of
+// the box; a touch of contrast and warmth is what a phone camera's own pipeline
+// would do anyway, and it is applied on DISPLAY only — exports use the original.
+const ENHANCE = 'contrast(1.04) saturate(1.06) brightness(1.02)';
+
 const ResultsViewer: React.FC<ResultsViewerProps> = ({
   selectedPhoto,
   generationStatus,
@@ -45,23 +78,24 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
   onTryAnother,
   onRetrySameStyle,
   onShowPricing,
-  onShowRewards,
   onShowAuth,
 }) => {
   const [beforeImageUrl, setBeforeImageUrl] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'before' | 'after' | 'compare'>('after');
   const [isAfterImageLoading, setIsAfterImageLoading] = useState(true);
   const [isCreatingCollage, setIsCreatingCollage] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isCreatingBarberCard, setIsCreatingBarberCard] = useState(false);
 
-  // Compare slider
+  // Compare: `peek` is press-and-hold (the fast, discoverable gesture);
+  // `compare` is the draggable divider for a considered look.
+  const [peek, setPeek] = useState(false);
+  const [compare, setCompare] = useState(false);
   const [sliderPosition, setSliderPosition] = useState(50);
   const sliderContainerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
+  const pressStart = useRef<{ x: number; t: number } | null>(null);
   const [showCompareHint, setShowCompareHint] = useState(false);
 
-  // Save & Rate
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [rating, setRating] = useState(0);
@@ -84,85 +118,30 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
     if (afterImageUrl) setIsAfterImageLoading(true);
   }, [afterImageUrl]);
 
-  // Compare hint â€” show once
+  // Teach the hold gesture once. Shown on the result itself rather than as a
+  // coach-mark overlay, so it never blocks the reveal.
   useEffect(() => {
-    if (activeTab === 'compare') {
-      const seen = localStorage.getItem('hasSeenCompareHint');
-      if (!seen) {
-        setShowCompareHint(true);
-        const t = setTimeout(() => {
-          setShowCompareHint(false);
-          localStorage.setItem('hasSeenCompareHint', '1');
-        }, 2500);
-        return () => clearTimeout(t);
-      }
-    }
-  }, [activeTab]);
+    if (isAfterImageLoading) return;
+    if (localStorage.getItem('hasSeenCompareHint')) return;
+    setShowCompareHint(true);
+    const t = setTimeout(() => {
+      setShowCompareHint(false);
+      localStorage.setItem('hasSeenCompareHint', '1');
+    }, 3200);
+    return () => clearTimeout(t);
+  }, [isAfterImageLoading]);
 
-  /* â”€â”€â”€ Canvas: Before/After Collage â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-  const createCollageImage = useCallback(async (): Promise<Blob | null> => {
-    if (!beforeImageUrl || !afterImageUrl) return null;
-    return new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) { resolve(null); return; }
-
-      const beforeImg = new Image();
-      const afterImg = new Image();
-      let loaded = 0;
-
-      const onLoad = () => {
-        loaded++;
-        if (loaded < 2) return;
-
-        const imgW = Math.max(beforeImg.width, afterImg.width);
-        const imgH = Math.max(beforeImg.height, afterImg.height);
-        const pad = 24;
-        const labelH = 48;
-
-        canvas.width = imgW * 2 + pad * 3;
-        canvas.height = imgH + pad * 2 + labelH * 2;
-
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#9ca3af';
-        ctx.fillText('Before', pad + imgW / 2, pad + 30);
-        ctx.fillStyle = '#1a1a1a';
-        ctx.fillText('After', pad * 2 + imgW + imgW / 2, pad + 30);
-
-        const yOff = pad + labelH;
-        ctx.drawImage(beforeImg, pad, yOff, imgW, imgH);
-        ctx.drawImage(afterImg, pad * 2 + imgW, yOff, imgW, imgH);
-
-        if (!isPro) {
-          ctx.fillStyle = 'rgba(0,0,0,0.4)';
-          ctx.font = '14px system-ui, -apple-system, sans-serif';
-          ctx.fillText('Made with Hair Studio AI  ·  @ShadHairStudio', canvas.width / 2, canvas.height - 12);
-        }
-        if (selectedHairstyle?.name) {
-          ctx.fillStyle = '#1a1a1a';
-          ctx.font = 'bold 20px system-ui, -apple-system, sans-serif';
-          ctx.fillText(selectedHairstyle.name, canvas.width / 2, canvas.height - pad - (isPro ? 0 : 24));
-        }
-
-        canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.92);
-      };
-
-      beforeImg.crossOrigin = 'anonymous';
-      afterImg.crossOrigin = 'anonymous';
-      beforeImg.onload = onLoad;
-      afterImg.onload = onLoad;
-      beforeImg.onerror = () => resolve(null);
-      afterImg.onerror = () => resolve(null);
-      beforeImg.src = beforeImageUrl;
-      afterImg.src = afterImageUrl;
+  /* ─── Stylist card ──────────────────────────────────────────────────────── */
+  const createBarberCard = useCallback(async (): Promise<Blob | null> => {
+    if (!afterImageUrl) return null;
+    return renderShareCard('clean', {
+      afterUrl: afterImageUrl,
+      styleName: selectedHairstyle?.name,
+      hideWatermark: false,
     });
-  }, [beforeImageUrl, afterImageUrl, isPro, selectedHairstyle?.name]);
+  }, [afterImageUrl, selectedHairstyle?.name]);
 
-  /* â”€â”€â”€ Share Collage â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* ─── Share: before & after ─────────────────────────────────────────────── */
   const handleShareCollage = async () => {
     if (!beforeImageUrl || !afterImageUrl) { toast.error('Images not ready'); return; }
     setIsCreatingCollage(true);
@@ -211,7 +190,7 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
     } finally { setIsCreatingCollage(false); }
   };
 
-  /* â”€â”€â”€ Share Single Image â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* ─── Share: the look ───────────────────────────────────────────────────── */
   const handleShare = async () => {
     if (!afterImageUrl) { toast.error('Image not available'); return; }
     const title = 'Check out my new look!';
@@ -258,8 +237,8 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
     }
   };
 
-  /* â”€â”€â”€ Export with tracking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-  const handleExport = useCallback(async (_cleanExport: boolean) => {
+  /* ─── Export ────────────────────────────────────────────────────────────── */
+  const handleExport = useCallback(async () => {
     if (!afterImageUrl) { toast.error('Image not available'); return; }
     setIsExporting(true);
     triggerHaptic();
@@ -285,7 +264,6 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
         toast.success('Image downloaded');
       }
 
-      // Track export in background (non-blocking)
       apiService.exportImage(afterImageUrl, selectedHairstyle?.name || 'Unknown').catch(() => {});
     } catch (e: any) {
       console.error('Export failed:', e);
@@ -293,7 +271,37 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
     } finally { setIsExporting(false); }
   }, [afterImageUrl, selectedHairstyle?.name]);
 
-  /* â”€â”€â”€ Save Look â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* ─── Stylist card export ───────────────────────────────────────────────── */
+  const handleBarberExport = useCallback(async () => {
+    setIsCreatingBarberCard(true);
+    triggerHaptic(ImpactStyle.Medium);
+    try {
+      const blob = await createBarberCard();
+      if (!blob) { toast.error('Failed to create stylist card'); return; }
+      if (Capacitor.isNativePlatform()) {
+        const b64 = await blobToBase64(blob);
+        const fn = `stylist-card-${Date.now()}.jpg`;
+        await Filesystem.writeFile({ path: fn, data: b64, directory: Directory.Cache, recursive: true });
+        const { uri } = await Filesystem.getUri({ path: fn, directory: Directory.Cache });
+        await Share.share({
+          title: `${selectedHairstyle?.name || 'Hairstyle'} - Show Your Stylist`,
+          text: "Here's the style I want - generated with Hair Studio AI",
+          dialogTitle: 'Share Stylist Card',
+          files: [uri],
+        });
+        toast.success('Stylist card shared!');
+        setTimeout(async () => { try { await Filesystem.deleteFile({ path: fn, directory: Directory.Cache }); } catch {} }, 2000);
+      } else {
+        downloadBlob(blob, `stylist-card-${selectedHairstyle?.name || 'hairstyle'}.jpg`);
+        toast.success('Stylist card downloaded!');
+      }
+    } catch (e: any) {
+      if (isShareCancel(e)) toast.info('Share cancelled');
+      else { console.error('Stylist card export failed:', e); toast.error('Failed to export stylist card'); }
+    } finally { setIsCreatingBarberCard(false); }
+  }, [createBarberCard, selectedHairstyle]);
+
+  /* ─── Save & rate ───────────────────────────────────────────────────────── */
   const handleSaveLook = useCallback(async () => {
     if (!generationId || isGuest || isSaving) return;
     setIsSaving(true);
@@ -311,7 +319,6 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
     finally { setIsSaving(false); }
   }, [generationId, isGuest, isSaving, isSaved, selectedHairstyle?.name]);
 
-  /* â”€â”€â”€ Rate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const handleRate = useCallback(async (newRating: number) => {
     if (!generationId || isGuest) return;
     setIsRating(true);
@@ -323,372 +330,274 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
     finally { setIsRating(false); }
   }, [generationId, isGuest]);
 
-  /* â”€â”€â”€ Compare Slider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-  const handleSliderMove = useCallback((clientX: number) => {
-    if (!sliderContainerRef.current) return;
-    const rect = sliderContainerRef.current.getBoundingClientRect();
+  /* ─── Compare gestures ──────────────────────────────────────────────────── */
+  const moveDivider = useCallback((clientX: number) => {
+    const el = sliderContainerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
     setSliderPosition(Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100)));
   }, []);
 
-  const handleSliderPointerDown = useCallback((e: React.PointerEvent) => {
-    isDraggingRef.current = true;
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-    handleSliderMove(e.clientX);
-  }, [handleSliderMove]);
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    pressStart.current = { x: e.clientX, t: Date.now() };
+    if (compare) {
+      isDraggingRef.current = true;
+      (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+      moveDivider(e.clientX);
+    } else {
+      // Press and hold to see the original.
+      setPeek(true);
+      setShowCompareHint(false);
+    }
+  }, [compare, moveDivider]);
 
-  const handleSliderPointerMove = useCallback((e: React.PointerEvent) => {
-    if (isDraggingRef.current) handleSliderMove(e.clientX);
-  }, [handleSliderMove]);
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (compare && isDraggingRef.current) moveDivider(e.clientX);
+  }, [compare, moveDivider]);
 
-  const handleSliderPointerUp = useCallback(() => { isDraggingRef.current = false; }, []);
+  const onPointerUp = useCallback(() => {
+    isDraggingRef.current = false;
+    setPeek(false);
+    pressStart.current = null;
+  }, []);
 
-  /* â”€â”€â”€ Canvas: Barber Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-  const createBarberCard = useCallback(async (): Promise<Blob | null> => {
-    if (!afterImageUrl) return null;
-    return new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) { resolve(null); return; }
-
-      const W = 1080, H = 1440;
-      canvas.width = W;
-      canvas.height = H;
-
-      const img = new window.Image();
-      img.crossOrigin = 'anonymous';
-
-      img.onload = () => {
-        // Draw the generated image filling the entire canvas
-        const iw = img.naturalWidth, ih = img.naturalHeight;
-        const scale = Math.max(W / iw, H / ih);
-        const sw = iw * scale, sh = ih * scale;
-        const ox = (W - sw) / 2, oy = (H - sh) / 2;
-        ctx.drawImage(img, ox, oy, sw, sh);
-
-        // Bottom gradient overlay for text readability
-        const grad = ctx.createLinearGradient(0, H * 0.55, 0, H);
-        grad.addColorStop(0, 'rgba(0,0,0,0)');
-        grad.addColorStop(0.5, 'rgba(0,0,0,0.5)');
-        grad.addColorStop(1, 'rgba(0,0,0,0.85)');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, H * 0.55, W, H * 0.45);
-
-        // Top subtle gradient for branding
-        const topGrad = ctx.createLinearGradient(0, 0, 0, H * 0.15);
-        topGrad.addColorStop(0, 'rgba(0,0,0,0.5)');
-        topGrad.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = topGrad;
-        ctx.fillRect(0, 0, W, H * 0.15);
-
-        ctx.textAlign = 'center';
-
-        // Top: small branding
-        ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
-        ctx.fillText('HAIR STUDIO AI', W / 2, 48);
-
-        // Bottom section: style name + tagline
-        const name = selectedHairstyle?.name || 'New Hairstyle';
-
-        // Style name (large)
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 44px system-ui, -apple-system, sans-serif';
-        // Word-wrap if name is too long
-        const maxW = W - 120;
-        const nameMetrics = ctx.measureText(name);
-        if (nameMetrics.width > maxW) {
-          // Two-line wrap
-          const words = name.split(' ');
-          let line1 = '', line2 = '';
-          for (const w of words) {
-            const test = line1 ? line1 + ' ' + w : w;
-            if (ctx.measureText(test).width <= maxW) { line1 = test; }
-            else { line2 += (line2 ? ' ' : '') + w; }
-          }
-          ctx.fillText(line1, W / 2, H - 160);
-          ctx.fillText(line2, W / 2, H - 110);
-        } else {
-          ctx.fillText(name, W / 2, H - 120);
-        }
-
-        // Tagline
-        ctx.fillStyle = 'rgba(255,255,255,0.7)';
-        ctx.font = '22px system-ui, -apple-system, sans-serif';
-        ctx.fillText('Show your stylist this look', W / 2, H - 68);
-
-        // URL
-        ctx.fillStyle = 'rgba(255,255,255,0.45)';
-        ctx.font = '18px system-ui, -apple-system, sans-serif';
-        ctx.fillText('@ShadHairStudio', W / 2, H - 36);
-
-        canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.92);
-      };
-
-      img.onerror = () => resolve(null);
-      img.src = afterImageUrl;
-    });
-  }, [afterImageUrl, selectedHairstyle]);
-
-  const handleBarberExport = useCallback(async () => {
-    setIsCreatingBarberCard(true);
-    triggerHaptic(ImpactStyle.Medium);
-    try {
-      const blob = await createBarberCard();
-      if (!blob) { toast.error('Failed to create stylist card'); return; }
-      if (Capacitor.isNativePlatform()) {
-        const b64 = await blobToBase64(blob);
-        const fn = `stylist-card-${Date.now()}.jpg`;
-        await Filesystem.writeFile({ path: fn, data: b64, directory: Directory.Cache, recursive: true });
-        const { uri } = await Filesystem.getUri({ path: fn, directory: Directory.Cache });
-        await Share.share({
-          title: `${selectedHairstyle?.name || 'Hairstyle'} - Show Your Stylist`,
-          text: 'Here\'s the style I want - generated with Hair Studio AI',
-          dialogTitle: 'Share Stylist Card',
-          files: [uri],
-        });
-        toast.success('Stylist card shared!');
-        setTimeout(async () => { try { await Filesystem.deleteFile({ path: fn, directory: Directory.Cache }); } catch {} }, 2000);
-      } else {
-        downloadBlob(blob, `stylist-card-${selectedHairstyle?.name || 'hairstyle'}.jpg`);
-        toast.success('Stylist card downloaded!');
-      }
-    } catch (e: any) {
-      if (isShareCancel(e)) toast.info('Share cancelled');
-      else { console.error('Stylist card export failed:', e); toast.error('Failed to export stylist card'); }
-    } finally { setIsCreatingBarberCard(false); }
-  }, [createBarberCard, selectedHairstyle]);
-
-  /* â”€â”€â”€ Loading guard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* ─── Loading guard ─────────────────────────────────────────────────────── */
   if (!beforeImageUrl || !afterImageUrl) {
     return (
-      <div className="flex aspect-[4/5] w-full max-h-[70vh] items-center justify-center rounded-2xl bg-gray-50 ring-1 ring-black/[0.04]">
-        <Loader2 className="w-7 h-7 animate-spin text-gray-300" />
+      <div className="fixed inset-0 z-50 grid place-items-center bg-[#0B0B0B]">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-white/70" />
       </div>
     );
   }
 
-  /* â”€â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  const showingBefore = peek;
+
   return (
-    <div className="w-full mx-auto overflow-hidden">
-      {/* Hero â€” minimal */}
-      <div className="text-center pt-4 pb-3 px-4">
-        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.12em] mb-1">Result</p>
-        <h2 className="text-lg font-bold text-gray-900 leading-tight">{selectedHairstyle?.name}</h2>
-      </div>
-
-      {/* Segmented control */}
-      <div className="px-4 mb-4">
-        <div className="p-0.5 bg-gray-100 rounded-xl flex" role="tablist" aria-label="Image comparison">
-          {(['before', 'compare', 'after'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => { setActiveTab(tab); triggerHaptic(); }}
-              className={cn(
-                'flex-1 py-2 px-3 rounded-[10px] text-center text-sm font-semibold transition-all duration-200',
-                activeTab === tab
-                  ? 'bg-[#1a1a1a] text-white shadow-sm'
-                  : 'text-gray-400 hover:text-gray-600'
-              )}
-              role="tab"
-              aria-selected={activeTab === tab}
-              aria-controls="image-panel"
-            >
-              {tab === 'compare' ? 'Compare' : tab === 'before' ? 'Before' : 'After'}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Image panel */}
+    <div className="fixed inset-0 z-50 select-none overflow-hidden bg-[#0B0B0B]">
+      {/* ─── Image plane ─────────────────────────────────────────────────── */}
       <div
-        className="relative aspect-[4/5] w-full bg-gray-50 rounded-2xl overflow-hidden ring-1 ring-black/[0.04]"
-        id="image-panel"
-        role="tabpanel"
+        ref={sliderContainerRef}
+        className={cn('absolute inset-0 touch-none', compare && 'cursor-ew-resize')}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
       >
-        <AnimatePresence mode="wait">
-          {activeTab === 'before' && (
-            <motion.img
-              key="before"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              src={beforeImageUrl}
-              alt="Original photo"
-              className="w-full h-full object-cover"
-            />
-          )}
+        {/* Original, underneath */}
+        <img
+          src={beforeImageUrl}
+          alt="Your original photo"
+          draggable={false}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
 
-          {activeTab === 'after' && (
-            <motion.div key="after" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="w-full h-full">
-              {isAfterImageLoading && (
-                <div className="absolute inset-0 bg-gray-100 animate-pulse flex items-center justify-center z-10">
-                  <p className="text-xs text-gray-400 font-medium">Loading...</p>
-                </div>
-              )}
-              <img
-                decoding="async"
-                src={afterImageUrl}
-                alt={`Generated: ${selectedHairstyle?.name}`}
-                className="w-full h-full object-cover transition-opacity duration-300"
-                style={{ opacity: isAfterImageLoading ? 0 : 1 }}
-                onLoad={() => setIsAfterImageLoading(false)}
-                onError={() => setIsAfterImageLoading(false)}
-              />
-            </motion.div>
+        {/* Result on top. In compare mode it is clipped by the divider; on a
+            press-and-hold it lifts entirely so the original shows through. */}
+        <div
+          className="absolute inset-0 transition-opacity duration-200"
+          style={{
+            clipPath: compare ? `inset(0 0 0 ${sliderPosition}%)` : undefined,
+            opacity: showingBefore ? 0 : 1,
+          }}
+        >
+          {isAfterImageLoading && (
+            <div className="absolute inset-0 z-10 animate-pulse bg-[#141414]" />
           )}
+          <img
+            src={afterImageUrl}
+            alt={`Your look: ${selectedHairstyle?.name || ''}`}
+            decoding="async"
+            draggable={false}
+            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500"
+            style={{ opacity: isAfterImageLoading ? 0 : 1, filter: ENHANCE }}
+            onLoad={() => setIsAfterImageLoading(false)}
+            onError={() => setIsAfterImageLoading(false)}
+          />
+        </div>
 
-          {activeTab === 'compare' && (
-            <motion.div
-              key="compare"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+        {/* Divider — a brass hairline, not a chrome slider widget */}
+        {compare && (
+          <div
+            className="absolute inset-y-0 z-10 w-px bg-brass"
+            style={{ left: `${sliderPosition}%` }}
+          >
+            <div className="absolute left-1/2 top-1/2 grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-brass shadow-lg">
+              <IonIcon icon={swapHorizontalOutline} style={{ fontSize: 20, color: '#fff' }} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Scrims. Two soft gradients rather than panels, so the photo still reads
+          edge to edge but the controls stay legible on a light result. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/55 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
+
+      {/* ─── Top row ─────────────────────────────────────────────────────── */}
+      <div
+        className="absolute inset-x-0 top-0 flex items-center justify-between px-4"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 10px)' }}
+      >
+        <button
+          onClick={() => { triggerHaptic(); onTryAnother?.(); }}
+          aria-label="Close"
+          className="grid h-10 w-10 place-items-center rounded-full bg-black/35 backdrop-blur-md active:scale-95"
+        >
+          <IonIcon icon={closeOutline} style={{ fontSize: 22, color: '#fff' }} />
+        </button>
+
+        <button
+          onClick={() => { triggerHaptic(); setCompare((c) => !c); setShowCompareHint(false); }}
+          className={cn(
+            'h-10 rounded-full px-4 text-[13px] font-medium backdrop-blur-md active:scale-95',
+            compare ? 'bg-brass text-white' : 'bg-black/35 text-white'
+          )}
+        >
+          {compare ? 'Done' : 'Compare'}
+        </button>
+      </div>
+
+      {/* "Before" marker while peeking or comparing */}
+      <AnimatePresence>
+        {(showingBefore || compare) && (
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="pointer-events-none absolute left-4 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wider text-white/90 backdrop-blur-md"
+            style={{ top: 'calc(env(safe-area-inset-top, 0px) + 62px)' }}
+          >
+            Before
+          </motion.span>
+        )}
+      </AnimatePresence>
+
+      {/* ─── Bottom: caption + actions ───────────────────────────────────── */}
+      <div
+        className="absolute inset-x-0 bottom-0 px-5"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 18px)' }}
+      >
+        {/* Hold-to-compare hint, shown once */}
+        <AnimatePresence>
+          {showCompareHint && !compare && (
+            <motion.p
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              ref={sliderContainerRef}
-              className="relative w-full h-full overflow-hidden touch-none cursor-ew-resize select-none"
-              onPointerDown={handleSliderPointerDown}
-              onPointerMove={handleSliderPointerMove}
-              onPointerUp={handleSliderPointerUp}
-              onPointerCancel={handleSliderPointerUp}
+              className="mb-3 text-center text-[12px] text-white/70"
             >
-              {/* Before â€” full, underneath */}
-              <img src={beforeImageUrl} alt="Original" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
-
-              {/* After â€” clipped from right */}
-              <div className="absolute inset-0" style={{ clipPath: `inset(0 0 0 ${sliderPosition}%)` }}>
-                <img src={afterImageUrl} alt="Generated" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
-              </div>
-
-              {/* Handle */}
-              <div className="absolute top-0 bottom-0 w-[2px] bg-white/70 z-10" style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#1a1a1a] shadow-lg flex items-center justify-center ring-2 ring-white/30">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M5 3L1 8L5 13" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M11 3L15 8L11 13" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Labels */}
-              <span className="absolute top-3 left-3 px-2 py-0.5 bg-black/40 rounded-lg text-white text-[10px] font-semibold backdrop-blur-sm">Before</span>
-              <span className="absolute top-3 right-3 px-2 py-0.5 bg-[#1a1a1a]/80 rounded-lg text-white text-[10px] font-semibold backdrop-blur-sm">After</span>
-
-              {/* First-time hint */}
-              <AnimatePresence>
-                {showCompareHint && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/60 rounded-full text-white text-xs font-medium backdrop-blur-sm flex items-center gap-1.5"
-                  >
-                    <ChevronLeft className="w-3 h-3" />
-                    Drag to compare
-                    <ChevronRightIcon className="w-3 h-3" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
+              Hold the photo to see your original
+            </motion.p>
           )}
         </AnimatePresence>
-      </div>
 
-      {/* Save & Rate strip */}
-      {generationId && !isGuest && (
-        <div className="flex items-center justify-between px-4 py-3 mt-3">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mr-1">Rate</span>
+        {/* Lookbook caption */}
+        <h1 className="font-display text-[26px] italic leading-tight text-white">
+          {selectedHairstyle?.name || 'Your look'}
+        </h1>
+        <p className="mt-1 text-[12px] text-white/55">
+          AI preview — results are approximations
+        </p>
+
+        {/* Primary action */}
+        <button
+          onClick={handleShareCollage}
+          disabled={isCreatingCollage}
+          className="mt-4 flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-brass text-[15px] font-semibold text-white active:scale-[0.99] disabled:opacity-60"
+        >
+          {isCreatingCollage ? (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          ) : (
+            <IonIcon icon={shareOutline} style={{ fontSize: 19 }} />
+          )}
+          Share your look
+        </button>
+
+        {/* Secondary row — quiet glyphs, no competing fills */}
+        <div className="mt-2 flex items-center justify-between">
+          <SecondaryAction
+            icon={isSaved ? bookmark : bookmarkOutline}
+            label={isSaved ? 'Saved' : 'Save'}
+            active={isSaved}
+            disabled={isSaving || isGuest || !generationId}
+            onClick={handleSaveLook}
+          />
+          <SecondaryAction
+            icon={downloadOutline}
+            label="Download"
+            busy={isExporting}
+            onClick={handleExport}
+          />
+          <SecondaryAction
+            icon={cutOutline}
+            label="Stylist"
+            busy={isCreatingBarberCard}
+            onClick={handleBarberExport}
+          />
+          <SecondaryAction
+            icon={refreshOutline}
+            label="Retry"
+            onClick={() => { triggerHaptic(); (onRetrySameStyle || onTryAnother)?.(); }}
+          />
+        </div>
+
+        {/* Rating sits BELOW the actions, not next to the caption. A row of empty
+            outline stars right under the style name read louder than the Share
+            button, and shares are what actually grow the app. */}
+        {generationId && !isGuest && (
+          <div className="mt-2 flex items-center justify-center gap-2.5">
+            <span className="text-[11px] text-white/45">Rate this look</span>
             <StarRating value={rating} onChange={handleRate} size="sm" showLabel={false} readonly={isRating} />
           </div>
+        )}
+
+        {/* One contextual nudge at a time — never stack a sign-in and an upsell */}
+        {isGuest && onShowAuth ? (
           <button
-            onClick={handleSaveLook}
-            disabled={isSaving}
-            className={cn(
-              'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-semibold transition-all active:scale-95',
-              isSaved ? 'bg-[#1a1a1a] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-            )}
+            onClick={() => { triggerHaptic(); onShowAuth(); }}
+            className="mt-3 w-full text-center text-[13px] text-white/70 underline underline-offset-4"
           >
-            {isSaved ? <BookmarkCheck className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
-            {isSaved ? 'Saved' : 'Save'}
+            Sign in to save this look
           </button>
-        </div>
-      )}
-
-      {/* Mobile bottom sheet */}
-      <div className="lg:hidden">
-        <ResultsActionSheet
-          isOpen={true}
-          isPro={isPro}
-          isGuest={isGuest}
-          onShareCollage={handleShareCollage}
-          onShareImage={handleShare}
-          onExport={handleExport}
-          onTryAnother={onTryAnother || (() => {})}
-          onRetrySameStyle={onRetrySameStyle}
-          onBarberExport={handleBarberExport}
-          onUpgrade={onShowPricing || (() => {})}
-          onShowAuth={onShowAuth}
-          isExporting={isExporting}
-          isCreatingCollage={isCreatingCollage}
-          isCreatingBarberCard={isCreatingBarberCard}
-        />
-      </div>
-
-      {/* Desktop actions */}
-      <div className="hidden lg:block p-4 mt-3 space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <button onClick={handleShareCollage} disabled={isCreatingCollage} className="h-12 rounded-xl bg-[#1a1a1a] text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#2a2a2a] active:scale-[0.98] disabled:opacity-50 transition-all">
-            {isCreatingCollage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
-            Share Before & After
+        ) : !isPro && typeof availableCredits === 'number' && availableCredits < 3 && onShowPricing ? (
+          <button
+            onClick={() => { triggerHaptic(); onShowPricing(); }}
+            className="mt-3 w-full text-center text-[13px] text-white/70 underline underline-offset-4"
+          >
+            {availableCredits === 0 ? 'Out of looks — get more' : `${availableCredits} left — get more`}
           </button>
-          <button onClick={handleShare} className="h-12 rounded-xl bg-gray-100 text-gray-700 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-200 active:scale-[0.98] transition-all">
-            <ArrowUpRight className="w-4 h-4" />
-            Share Image
-          </button>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3">
-          <button onClick={() => handleExport(isPro)} disabled={isExporting} className="h-12 rounded-xl bg-gray-50 ring-1 ring-black/[0.04] text-gray-700 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-100 active:scale-[0.98] disabled:opacity-50 transition-all">
-            {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            {isPro ? 'HD' : 'Download'}
-          </button>
-          <button onClick={handleBarberExport} disabled={isCreatingBarberCard} className="h-12 rounded-xl bg-gray-50 ring-1 ring-black/[0.04] text-gray-700 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-100 active:scale-[0.98] disabled:opacity-50 transition-all">
-            {isCreatingBarberCard ? <Loader2 className="w-4 h-4 animate-spin" /> : <Scissors className="w-4 h-4" />}
-            Stylist Card
-          </button>
-          {onRetrySameStyle && (
-            <button onClick={onRetrySameStyle} className="h-12 rounded-xl bg-gray-50 ring-1 ring-black/[0.04] text-gray-700 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-100 active:scale-[0.98] transition-all">
-              <RefreshCw className="w-4 h-4" />
-              Regenerate
-            </button>
-          )}
-        </div>
-
-        {onTryAnother && (
-          <button onClick={onTryAnother} className="w-full h-12 rounded-xl text-gray-400 font-semibold text-sm flex items-center justify-center gap-2 hover:text-gray-600 hover:bg-gray-50 active:scale-[0.98] transition-all">
-            <RotateCcw className="w-4 h-4" />
-            Try Another Style
-          </button>
-        )}
-
-        {typeof availableCredits === 'number' && availableCredits < 3 && onShowPricing && (
-          <button onClick={onShowPricing} className="w-full p-3 rounded-xl bg-gray-50 ring-1 ring-black/[0.04] text-left flex items-center gap-3 hover:bg-gray-100 transition-all">
-            <div className="w-9 h-9 rounded-lg bg-[#1a1a1a] flex items-center justify-center flex-shrink-0">
-              <Crown className="w-4 h-4 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900">{availableCredits === 0 ? 'Out of credits' : `${availableCredits} credit${availableCredits === 1 ? '' : 's'} left`}</p>
-              <p className="text-xs text-gray-400">Get more to keep generating</p>
-            </div>
-          </button>
-        )}
+        ) : null}
       </div>
     </div>
   );
 };
 
-/* â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Bits ────────────────────────────────────────────────────────────────── */
+
+const SecondaryAction: React.FC<{
+  icon: string;
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  busy?: boolean;
+  disabled?: boolean;
+}> = ({ icon, label, onClick, active, busy, disabled }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled || busy}
+    className={cn(
+      'flex flex-1 flex-col items-center gap-1 py-2.5 active:scale-95 disabled:opacity-35',
+      active ? 'text-brass' : 'text-white/80'
+    )}
+  >
+    {busy ? (
+      <span className="h-[22px] w-[22px] animate-spin rounded-full border-2 border-white/25 border-t-white/80" />
+    ) : (
+      <IonIcon icon={icon} style={{ fontSize: 22 }} />
+    )}
+    <span className="text-[11px]">{label}</span>
+  </button>
+);
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {

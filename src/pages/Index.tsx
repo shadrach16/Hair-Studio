@@ -37,6 +37,8 @@ import { apiService } from '@/lib/api';
 import PinterestFeed from '@/components/PinterestFeed';
 import StyleDetailSheet from '@/components/StyleDetailSheet';
 import ConfirmGenerateScreen from '@/components/ConfirmGenerateScreen';
+import ResultsPreview from '@/dev/ResultsPreview';
+import { PREVIEW } from '@/dev/previewFlag';
  
 
 // --- MAIN COMPONENT ---
@@ -242,6 +244,13 @@ export default function StudioPage() {
   const isConfirmScreen = studioState === 'ready' && !!selectedPhoto && !!selectedHairstyle;
 
   const renderMainSurface = () => {
+    // DEV-only: mount the results screen with fixtures. Generation is down
+    // app-wide (Gemini billing) so there is otherwise no way to reach it in the
+    // browser. Stripped from production builds by import.meta.env.DEV.
+    if (import.meta.env.DEV && PREVIEW === 'results') {
+      return <ResultsPreview />;
+    }
+
     if (showTryOnSurface) {
       return renderStudioState();
     }
@@ -351,8 +360,10 @@ export default function StudioPage() {
         </div>
       </div>
 
-      {/* Mobile Action Bar - hidden during discover (has its own CTA) and confirm screen (has its own Generate) */}
-      {showTryOnSurface && !isDiscoverState && !isConfirmScreen && (
+      {/* Mobile Action Bar - hidden during discover (has its own CTA), the
+          confirm screen (has its own Generate), and results (M4 §6.1: the
+          result screen is full-bleed and carries its own floating actions). */}
+      {showTryOnSurface && !isDiscoverState && !isConfirmScreen && studioState !== 'results' && (
         <MobileActionBar
           studioState={studioState}
           selectedHairstyle={selectedHairstyle}
