@@ -16,6 +16,7 @@ import { PREVIEW_PARAMS } from '@/dev/previewFlag';
 import ConfirmGenerateScreen from '@/components/ConfirmGenerateScreen';
 import { ProcessingState } from '@/components/studio/ProcessingState';
 import { PermissionPrimer } from '@/components/ui/PermissionPrimer';
+import CameraUpload from '@/components/CameraUpload';
 
 const BEFORE =
   'https://res.cloudinary.com/djpcokxvn/image/upload/v1786138746/Hairstyles/bold_full_afro_with_vibrant_red_backdrop.jpg';
@@ -55,6 +56,21 @@ export const ConfirmPreview: React.FC = () => {
     />
   );
 };
+
+/** ?preview=photo — the "Add your photo" screen with a style selected. */
+export const PhotoPreview: React.FC = () => (
+  <div className="mx-auto w-full max-w-md px-4 py-4">
+    <CameraUpload
+      mode="camera"
+      onPhotoSelect={() => {}}
+      onClearPhoto={() => {}}
+      selectedPhoto={null}
+      selectedHairstyle={{ name: 'Purple-Tinted Freeform Locs', thumbnail: AFTER } as any}
+      onStyleSelect={() => {}}
+      onBack={() => {}}
+    />
+  </div>
+);
 
 /** ?preview=primer[&kind=photos] — the permission sheet is native-gated, so it
  *  never appears in a browser without this. */

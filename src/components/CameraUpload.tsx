@@ -5,6 +5,8 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { apiService } from '@/lib/api';
 import { PermissionPrimer, type PermissionKind } from '@/components/ui/PermissionPrimer';
+import { IonIcon } from '@ionic/react';
+import { cameraOutline, imagesOutline, arrowBackOutline, sunnyOutline } from 'ionicons/icons';
 import {
   Camera,
   Upload,
@@ -476,87 +478,86 @@ export default function CameraUpload({
           aria-label="Upload a photo"
         />
 
-        {/* Back button */}
-        {onBack && (
-          <div className="w-full flex items-center mb-1">
-            <button
-              onClick={onBack}
-              className="flex items-center gap-1 px-4 py-1.5 -ml-1 rounded-xl text-gray-400 active:text-gray-600 active:scale-95 transition-all"
-            >
-              <ArrowLeft className="w-4.5 h-4.5" />
-              <span className="text-[13px] font-medium">Discover</span>
-            </button>
-          </div>
-        )}
-
-        {/* Header */}
+        {/* ── Hero ──────────────────────────────────────────────────────────
+            The style being tried on IS the screen. Previously this was an 82px
+            thumbnail above a bold sans heading, with the two actions as a white
+            card of list rows and chevrons — a settings screen. The reason
+            someone is here is the style, so it gets the space, and the paper
+            gradient carries it into the actions instead of boxing them. */}
         {selectedHairstyle ? (
-          <div className="flex flex-col items-center mb-7 mt-4">
-            <div className="w-[82px] h-[82px] rounded-2xl overflow-hidden ring-1 ring-black/[0.06] shadow-sm mb-4">
-              <img
-                src={selectedHairstyle.thumbnail}
-                alt={selectedHairstyle.name}
-                className="w-full h-full object-cover"
-              />
+          <div className="relative -mx-4 mb-5 h-[40vh] max-h-[360px] w-[calc(100%+2rem)] overflow-hidden">
+            <img
+              src={selectedHairstyle.thumbnail}
+              alt={selectedHairstyle.name}
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-surface via-surface/75 to-transparent" />
+            {onBack && (
+              <button
+                onClick={onBack}
+                aria-label="Back"
+                className="absolute left-4 grid h-10 w-10 place-items-center rounded-full bg-black/35 backdrop-blur-md active:scale-95"
+                style={{ top: 'calc(env(safe-area-inset-top, 0px) + 10px)' }}
+              >
+                <IonIcon icon={arrowBackOutline} style={{ fontSize: 20, color: '#fff' }} />
+              </button>
+            )}
+            <div className="absolute inset-x-0 bottom-0 px-5 pb-3">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-ink-3">Trying on</p>
+              <h1 className="mt-1 font-display text-[26px] italic leading-tight text-ink">
+                {selectedHairstyle.name}
+              </h1>
             </div>
-            <h1 className="text-[20px] font-bold text-gray-900 text-center tracking-tight">
-              Add your photo
-            </h1>
-            <p className="text-[13px] text-gray-400 mt-1.5 text-center">
-              To try <span className="font-medium text-gray-600">{selectedHairstyle.name}</span>
-            </p>
           </div>
         ) : (
-          <div className="flex flex-col items-center mb-7 mt-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center mb-4">
-              <Camera className="w-7 h-7 text-gray-300" />
-            </div>
-            <h1 className="text-[20px] font-bold text-gray-900 text-center tracking-tight">
-              Add your photo
-            </h1>
-            <p className="text-[13px] text-gray-400 mt-1.5 text-center max-w-[240px]">
-              Upload a photo to try on hairstyles
-            </p>
+          <div className="w-full px-1 pb-2 pt-3">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="mb-5 flex items-center gap-1.5 text-[13px] text-ink-3 active:text-ink-2"
+              >
+                <IonIcon icon={arrowBackOutline} style={{ fontSize: 17 }} />
+                Discover
+              </button>
+            )}
           </div>
         )}
 
-        {/* Action rows */}
-        <div className="w-full rounded-2xl bg-white ring-1 ring-black/[0.04] shadow-sm overflow-hidden">
-          <button
-            onClick={handleUploadClick}
-            className="w-full flex items-center gap-3.5 px-4 py-4 transition-colors active:bg-gray-50/60 group"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50 flex-shrink-0">
-              <ImageIcon className="w-[18px] h-[18px] text-gray-400" />
-            </span>
-            <div className="flex-1 text-left">
-              <p className="text-[14px] font-medium text-gray-800">Photo Library</p>
-              <p className="text-[11px] text-gray-400">Choose from gallery</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-300" />
-          </button>
+        {/* ── The ask ───────────────────────────────────────────────────── */}
+        <div className="w-full px-1">
+          <h2 className="font-display text-[24px] leading-tight text-ink">Add your photo</h2>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-ink-2">
+            One clear, front-facing photo is all it takes.
+          </p>
 
-          <div className="h-px bg-gray-100 mx-4" />
-
+          {/* Two actions, weighted. The camera is primary because a photo taken
+              now is framed for this purpose; a library pick often is not. */}
           <button
             onClick={handleCameraClick}
-            className="w-full flex items-center gap-3.5 px-4 py-4 transition-colors active:bg-gray-50/60 group"
+            className="mt-6 flex h-[54px] w-full items-center justify-center gap-2.5 rounded-full bg-brass text-[15px] font-semibold text-white active:scale-[0.99]"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50 flex-shrink-0">
-              <Camera className="w-[18px] h-[18px] text-gray-400" />
-            </span>
-            <div className="flex-1 text-left">
-              <p className="text-[14px] font-medium text-gray-800">Take a Selfie</p>
-              <p className="text-[11px] text-gray-400">Use front camera</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-300" />
+            <IonIcon icon={cameraOutline} style={{ fontSize: 20 }} />
+            Take a photo
           </button>
-        </div>
 
-        {/* Disclaimer */}
-        <p className="text-[11px] text-gray-300 mt-4 text-center">
-          Results may vary. AI-generated images are approximations.
-        </p>
+          <button
+            onClick={handleUploadClick}
+            className="mt-2.5 flex h-[54px] w-full items-center justify-center gap-2.5 rounded-full text-[15px] font-medium text-ink ring-1 ring-hairline active:bg-surface-2"
+          >
+            <IonIcon icon={imagesOutline} style={{ fontSize: 20 }} />
+            Choose from library
+          </button>
+
+          <p className="mt-5 flex items-start justify-center gap-1.5 text-center text-[12px] leading-relaxed text-ink-3">
+            <IonIcon icon={sunnyOutline} style={{ fontSize: 14, marginTop: 1 }} />
+            Face the light and keep hair off your face — it is what makes the
+            result look like you.
+          </p>
+
+          <p className="mt-4 text-center text-[11px] text-ink-3/70">
+            AI preview — results are approximations.
+          </p>
+        </div>
 
         {/* Trending styles — matches Discover page carousel design */}
         {!selectedHairstyle && trendingStyles.length > 0 && (
