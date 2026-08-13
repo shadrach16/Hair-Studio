@@ -76,7 +76,13 @@ export const ResultsPreview: React.FC = () => {
     <ResultsViewer
       selectedPhoto={photo}
       selectedHairstyle={{ name: 'Purple-Tinted Freeform Locs' }}
-      generationStatus={{ generatedImageUrl: AFTER }}
+      generationStatus={{
+        generatedImageUrl: AFTER,
+        // ?identity=N exercises the likeness line either side of its threshold.
+        identityScore: PREVIEW_PARAMS.has('identity')
+          ? Number(PREVIEW_PARAMS.get('identity'))
+          : 92,
+      }}
       generationId="preview"
       referralCode="PREVIEW"
       // ?guest / ?pro / ?credits=N exercise the contextual nudges, which are

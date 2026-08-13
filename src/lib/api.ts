@@ -248,6 +248,8 @@ export interface Generation {
   qualityScore?: number | null;
   qualityPassed?: boolean | null;
   qualityDefect?: string | null;
+  /** identityPreservation 0-100 from the output-quality scorer. */
+  identityScore?: number | null;
   retryCount?: number;
 }
 

@@ -32,6 +32,7 @@ import {
   refreshOutline,
   closeOutline,
   swapHorizontalOutline,
+  checkmarkCircle,
 } from 'ionicons/icons';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -44,7 +45,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface ResultsViewerProps {
   selectedPhoto: File | null;
   selectedHairstyle: { name: string } | null;
-  generationStatus: { generatedImageUrl: string | null } | null;
+  generationStatus: { generatedImageUrl: string | null; identityScore?: number | null } | null;
   generationId?: string | null;
   referralCode?: string;
   isPro?: boolean;
@@ -65,6 +66,11 @@ const triggerHaptic = async (style: ImpactStyle = ImpactStyle.Light) => {
 // the box; a touch of contrast and warmth is what a phone camera's own pipeline
 // would do anyway, and it is applied on DISPLAY only — exports use the original.
 const ENHANCE = 'contrast(1.04) saturate(1.06) brightness(1.02)';
+
+// identityPreservation from services/outputQuality.js is scored 0-100 against
+// the original selfie. 80 is deliberately above the delivery thresholds (35/45/55)
+// — the line should mean "this genuinely looks like you", not "this shipped".
+const LIKENESS_THRESHOLD = 80;
 
 const ResultsViewer: React.FC<ResultsViewerProps> = ({
   selectedPhoto,
@@ -495,9 +501,22 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
         <h1 className="font-display text-[26px] italic leading-tight text-white">
           {selectedHairstyle?.name || 'Your look'}
         </h1>
-        <p className="mt-1 text-[12px] text-white/55">
-          AI preview — results are approximations
-        </p>
+        <div className="mt-1 flex items-center gap-2">
+          <p className="text-[12px] text-white/55">
+            AI preview — results are approximations
+          </p>
+          {/* Shown only when the output-quality scorer actually rated identity
+              preservation highly against the original selfie. It is a real
+              measurement, not a badge — so it stays absent rather than
+              degrading to a lower grade when the score is mediocre. */}
+          {typeof generationStatus?.identityScore === 'number' &&
+            generationStatus.identityScore >= LIKENESS_THRESHOLD && (
+              <span className="flex items-center gap-1 text-[12px] text-brass">
+                <IonIcon icon={checkmarkCircle} style={{ fontSize: 14 }} />
+                Likeness verified
+              </span>
+            )}
+        </div>
 
         {/* Primary action */}
         <button
