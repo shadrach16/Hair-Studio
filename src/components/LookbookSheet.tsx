@@ -14,7 +14,7 @@ import { IonIcon } from '@ionic/react';
 import { searchOutline, closeOutline, imagesOutline } from 'ionicons/icons';
 import { apiService, type Hairstyle } from '@/lib/api';
 import { BottomSheet } from '@/components/ui/BottomSheet';
-import { StyleCard } from '@/components/ui/StyleCard';
+import { PinCard } from '@/components/ui/PinCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { cn } from '@/lib/utils';
 
@@ -115,11 +115,13 @@ export const LookbookSheet: React.FC<LookbookSheetProps> = ({
     setSearching(false);
   };
 
+  // Same masonry as the main feed, so search results and browsing read as one
+  // surface rather than two different apps.
   const grid = useMemo(
     () => (
-      <div className="grid grid-cols-2 gap-3">
+      <div className="columns-2 gap-2">
         {items.map((h) => (
-          <StyleCard
+          <PinCard
             key={h._id || h.id}
             hairstyle={h}
             width={180}
