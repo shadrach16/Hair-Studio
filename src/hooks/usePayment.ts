@@ -296,10 +296,10 @@ export function usePayment() {
             const { customerInfo } = await Purchases.restorePurchases();
             console.log("[RC] Restore purchases result:", JSON.stringify(customerInfo));
 
-            // Find active subscriptions from RevenueCat customer info
+            // Subscriptions first — these live in entitlements.active.
             const activeEntitlements = customerInfo.entitlements?.active;
+            let restoredSubscription = false;
             if (activeEntitlements && Object.keys(activeEntitlements).length > 0) {
-                // Sync the first active entitlement with backend
                 const firstEntitlement = Object.values(activeEntitlements)[0] as any;
                 if (firstEntitlement?.productIdentifier) {
                     await apiService.syncSubscription({
@@ -308,13 +308,29 @@ export function usePayment() {
                         providerSubscriptionId: firstEntitlement.originalPurchaseDate
                     });
                 }
+                restoredSubscription = true;
+            }
 
-                await refreshUser();
+            // Credit packs are CONSUMABLES: they never appear in
+            // entitlements.active, so checking only the block above told every
+            // pack buyer "No active purchases found to restore" — which is most
+            // of the paying customers, since packs are where the revenue is.
+            // The backend sweeps the RevenueCat record and grants idempotently.
+            const packs = await apiService.restorePurchases();
+            const grantedCredits = packs?.data?.grantedCredits || 0;
+
+            await refreshUser();
+
+            if (grantedCredits > 0) {
+                toast.success(`Restored ${grantedCredits} credits`);
+                return { restored: true, grantedCredits };
+            }
+            if (restoredSubscription) {
                 toast.success("Purchases restored successfully!");
                 return { restored: true };
             }
 
-            toast.info("No active purchases found to restore.");
+            toast.info("Nothing to restore on this account.");
             return { restored: false };
         } catch (err: any) {
             console.error("[RC] Restore purchases failed:", err);

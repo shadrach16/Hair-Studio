@@ -874,6 +874,25 @@ formData.append('hairstyleImage', imageFile, 'custom_style.jpg');
   // Webhook-independent credit-pack fallback: backend verifies the purchase against
   // RevenueCat's REST API and grants credits idempotently. Safe to call after every
   // successful purchasePackage() for a credit pack.
+  /**
+   * Sweeps EVERY non-subscription purchase on the user's RevenueCat record and
+   * grants anything not already credited. Unlike syncPurchase this needs no
+   * productId — the caller does not know what was bought, which is the whole
+   * point when recovering an account.
+   */
+  async restorePurchases(): Promise<{ success: boolean; message?: string; data?: any }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/payments/restore-purchases`, {
+        method: 'POST',
+        headers: this.getAuthHeaders()
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Restore purchases error:', error);
+      return { success: false, message: 'Network error' };
+    }
+  }
+
   async syncPurchase(productId: string): Promise<{ success: boolean; message?: string; data?: any }> {
     try {
       const response = await fetch(`${API_BASE_URL}/payments/sync-purchase`, {

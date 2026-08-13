@@ -431,3 +431,37 @@ that is where styling happens — so the sheet says so instead of implying it
 stays on device.
 
 **M4 is complete.** Next: M5 billing tiers.
+
+
+---
+
+## Appendix — M5 reality check (2026-08-13)
+
+**The production database contains no user history.** Inventory of the live
+`hairstudio` DB: 289 hairstyles, **1** user (a guest), **0** generations, **0**
+payments, 0 saved looks, 0 favourites. The earliest record of any kind is
+2026-08-09 — the day the backend was rebuilt after the VPS was deleted. The
+catalogue was restored; user data was not. Nightly backups are running and
+healthy (14-day rotation, verified today) but every archive postdates the
+rebuild, so there is nothing to roll back to.
+
+Three consequences for §7:
+
+1. **§7.4 step 1 is not executable as written.** "Existing paid credit balances
+   convert 1:1" — there are no balances left to convert. RevenueCat is the only
+   surviving record of who paid.
+2. **Restore was broken for exactly the people who paid.** The client's
+   `restorePurchases()` only inspected `customerInfo.entitlements.active`, which
+   holds SUBSCRIPTIONS. Credit packs are consumables and live in
+   `nonSubscriptionTransactions`, so a pack buyer — and per §7.3 packs are the
+   only real revenue this app has ever had — was told "No active purchases found
+   to restore." Fixed: `POST /api/payments/restore-purchases` sweeps the whole
+   RevenueCat subscriber record and grants idempotently on store transaction id.
+3. **The ceilings in §7.2 cannot be validated yet.** `scripts/utilisationReport.js`
+   computes p95 units/user and cost-at-ceiling versus price, but there is no
+   traffic to measure. `entitlements.consume()` now records usage on every
+   generation with enforcement still OFF, so the data starts accruing from now.
+
+**Recommended order before M5 ships:** restore-purchases first (it is live), then
+let usage accumulate, then set ceilings from the report rather than the assumed
+25-40% utilisation.
