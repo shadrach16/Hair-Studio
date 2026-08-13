@@ -3,17 +3,26 @@
 // A4: Generation mode selector (standard/HD/pro)
 
 import React, { useState, useEffect } from 'react';
-import { Coins, Clock, ShieldCheck, ImageOff, Diamond, AlertTriangle, X, Zap } from 'lucide-react';
+import { Coins, Clock, ShieldCheck, Image as ImageIcon, Aperture, AlertTriangle, X, Gem } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { apiService, type StyleContextNote } from '@/lib/api';
-import { tierCost } from '@/lib/generationTiers';
+import { GENERATION_TIERS, tierCost } from '@/lib/generationTiers';
 
-// A4: Generation mode definitions
-const GENERATION_MODES = [
-  { id: 'standard' as const, label: 'Standard', credits: tierCost('standard'), icon: ImageOff, desc: 'Good quality', color: 'gray' },
-  { id: 'hd' as const, label: 'HD', credits: tierCost('hd'), icon: Diamond, desc: 'Higher quality + auto-retry', color: 'blue' },
-  { id: 'pro' as const, label: 'Pro', credits: tierCost('pro'), icon: Zap, desc: 'Best quality + priority', color: 'amber' },
-] as const;
+// Name, cost and description come from lib/generationTiers (single source of
+// truth, mirrors the backend). Only icon and colour stay local.
+const MODE_STYLING: Record<string, { icon: any; color: string }> = {
+  standard: { icon: ImageIcon, color: 'gray' },
+  hd: { icon: Aperture, color: 'blue' },
+  pro: { icon: Gem, color: 'amber' },
+};
+
+const GENERATION_MODES = GENERATION_TIERS.map((t) => ({
+  id: t.id,
+  label: t.label,
+  credits: t.credits,
+  desc: t.description,
+  ...MODE_STYLING[t.id],
+}));
 
 export type GenerationMode = 'standard' | 'hd' | 'pro';
 

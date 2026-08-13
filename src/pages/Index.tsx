@@ -37,7 +37,7 @@ import { apiService } from '@/lib/api';
 import PinterestFeed from '@/components/PinterestFeed';
 import StyleDetailSheet from '@/components/StyleDetailSheet';
 import ConfirmGenerateScreen from '@/components/ConfirmGenerateScreen';
-import ResultsPreview from '@/dev/ResultsPreview';
+import ResultsPreview, { ConfirmPreview } from '@/dev/ResultsPreview';
 import { PREVIEW } from '@/dev/previewFlag';
  
 
@@ -247,8 +247,9 @@ export default function StudioPage() {
     // DEV-only: mount the results screen with fixtures. Generation is down
     // app-wide (Gemini billing) so there is otherwise no way to reach it in the
     // browser. Stripped from production builds by import.meta.env.DEV.
-    if (import.meta.env.DEV && PREVIEW === 'results') {
-      return <ResultsPreview />;
+    if (import.meta.env.DEV && PREVIEW) {
+      if (PREVIEW === 'results') return <ResultsPreview />;
+      if (PREVIEW === 'confirm') return <ConfirmPreview />;
     }
 
     if (showTryOnSurface) {

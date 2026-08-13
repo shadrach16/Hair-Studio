@@ -7,6 +7,9 @@
 // charged 2 for. Any future price change must happen here (and in the backend's
 // MODE_PRICING, which these values mirror).
 
+// The ids stay 'standard' | 'hd' | 'pro' — they are the wire format the backend
+// MODE_PRICING is keyed on, and every stored generation record uses them.
+// Only the DISPLAY names changed (M4 §6.1).
 export type GenerationMode = 'standard' | 'hd' | 'pro';
 
 export interface GenerationTier {
@@ -18,11 +21,19 @@ export interface GenerationTier {
   description: string;
 }
 
+// "Standard / HD / Pro" is spec-sheet language — it describes a FILE. Photography
+// language describes what the user gets, and it is the whole reason someone pays
+// three times as much: they are buying a portrait, not a bigger render.
 export const GENERATION_TIERS: GenerationTier[] = [
-  { id: 'standard', label: 'Standard', credits: 2, description: 'Fast results, good quality' },
-  { id: 'hd', label: 'HD', credits: 4, description: 'Sharper detail, better realism' },
-  { id: 'pro', label: 'Pro', credits: 6, description: 'Best quality, most lifelike' },
+  { id: 'standard', label: 'Preview', credits: 2, description: 'A quick look at the style' },
+  { id: 'hd', label: 'Portrait', credits: 4, description: 'Sharper detail and truer skin tones' },
+  { id: 'pro', label: 'Studio', credits: 6, description: 'Our closest likeness and finish' },
 ];
+
+/** Presentation-agnostic lookup, so no component re-types the names. */
+export function tierMeta(mode: GenerationMode): GenerationTier {
+  return GENERATION_TIERS.find((t) => t.id === mode) ?? GENERATION_TIERS[0];
+}
 
 /** Cost of the cheapest (default) tier — what a "try this style" costs. */
 export const BASE_GENERATION_COST =

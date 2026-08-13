@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Coins, Clock, ShieldCheck, ImageOff } from 'lucide-react';
 import GoogleSignInButton from '@/components/GoogleSignInButton';
+import { tierMeta } from '@/lib/generationTiers';
 
 interface ReadyStateProps {
   selectedPhoto: File;
@@ -48,7 +49,7 @@ const ReadyToApplyPrompt = ({
         <span className="flex items-center gap-1"><Clock className="w-3 h-3" />~20s</span>
         <span className="flex items-center gap-1">
           {isPro ? <ShieldCheck className="w-3 h-3" /> : <ImageOff className="w-3 h-3" />}
-          {isPro ? 'HD' : 'Std'}
+          {isPro ? tierMeta('hd').label : tierMeta('standard').label}
         </span>
       </div>
     </div>

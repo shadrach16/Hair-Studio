@@ -13,11 +13,46 @@
 import React, { useEffect, useState } from 'react';
 import ResultsViewer from '@/components/ResultsViewer';
 import { PREVIEW_PARAMS } from '@/dev/previewFlag';
+import ConfirmGenerateScreen from '@/components/ConfirmGenerateScreen';
 
 const BEFORE =
   'https://res.cloudinary.com/djpcokxvn/image/upload/v1786138746/Hairstyles/bold_full_afro_with_vibrant_red_backdrop.jpg';
 const AFTER =
   'https://res.cloudinary.com/djpcokxvn/image/upload/v1786138750/Hairstyles/purple_tinted_freeform_locs_with_studio_intensity.jpg';
+
+/** Shared fixture: the "before" arrives as a File (it comes from the camera). */
+function useFixturePhoto(): File | null {
+  const [photo, setPhoto] = useState<File | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetch(BEFORE)
+      .then((r) => r.blob())
+      .then((b) => alive && setPhoto(new File([b], 'before.jpg', { type: 'image/jpeg' })))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return photo;
+}
+
+/** ?preview=confirm — the tier picker, where the quality names are shown. */
+export const ConfirmPreview: React.FC = () => {
+  const photo = useFixturePhoto();
+  if (!photo) return null;
+  return (
+    <ConfirmGenerateScreen
+      selectedPhoto={photo}
+      selectedHairstyle={{ name: 'Purple-Tinted Freeform Locs', thumbnail: AFTER } as any}
+      userCredits={PREVIEW_PARAMS.has('credits') ? Number(PREVIEW_PARAMS.get('credits')) : 6}
+      isPro={PREVIEW_PARAMS.has('pro')}
+      isAuthenticated={!PREVIEW_PARAMS.has('guest')}
+      onGenerate={() => {}}
+      onBack={() => {}}
+      onBuyCredits={() => {}}
+    />
+  );
+};
 
 export const ResultsPreview: React.FC = () => {
   const [photo, setPhoto] = useState<File | null>(null);

@@ -4,15 +4,18 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Diamond, Zap, ImageOff, TrendingUp, AlertTriangle, ShieldCheck, Coins, RefreshCw, BarChart3 } from 'lucide-react';
 import { apiService, type QualityAnalyticsData, type QualityModeStats } from '@/lib/api';
+import { tierMeta } from '@/lib/generationTiers';
 
 interface QualityDashboardProps {
   onBack: () => void;
 }
 
 const MODE_META: Record<string, { icon: typeof Diamond; color: string; bg: string; label: string }> = {
-  standard: { icon: ImageOff, color: 'text-gray-600', bg: 'bg-gray-50', label: 'Standard' },
-  hd:       { icon: Diamond, color: 'text-blue-600', bg: 'bg-blue-50', label: 'HD' },
-  pro:      { icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50', label: 'Pro' },
+  // Labels come from lib/generationTiers so this dashboard can't drift from the
+  // names the user saw when they picked the tier.
+  standard: { icon: ImageOff, color: 'text-gray-600', bg: 'bg-gray-50', label: tierMeta('standard').label },
+  hd:       { icon: Diamond, color: 'text-blue-600', bg: 'bg-blue-50', label: tierMeta('hd').label },
+  pro:      { icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50', label: tierMeta('pro').label },
 };
 
 function StatCard({ label, value, sub, icon: Icon, color = 'text-gray-600', bg = 'bg-gray-50' }: {

@@ -2,20 +2,29 @@
 // Screen 3 of the style-first flow: photo and style both selected, user confirms
 
 import React, { useState } from 'react';
-import { ChevronLeft, Coins, Clock, ShieldCheck, ArrowRight, ImageOff, Diamond, Zap } from 'lucide-react';
+import { ChevronLeft, Coins, Clock, ShieldCheck, ArrowRight, Image as ImageIcon, Aperture, Gem } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { type Hairstyle } from '@/lib/api';
-import { tierCost } from '@/lib/generationTiers';
+import { GENERATION_TIERS, tierCost } from '@/lib/generationTiers';
 import { cn } from '@/lib/utils';
 
-// Generation mode definitions (matching PreGenerationSheet)
-const GENERATION_MODES = [
-  // Costs come from lib/generationTiers (single source of truth, mirrors the
-  // backend). Only presentation lives here.
-  { id: 'standard' as const, label: 'Standard', credits: tierCost('standard'), icon: ImageOff, color: 'gray', desc: 'Fast results, good quality' },
-  { id: 'hd' as const, label: 'HD', credits: tierCost('hd'), icon: Diamond, color: 'blue', desc: 'Sharper detail, better realism' },
-  { id: 'pro' as const, label: 'Pro', credits: tierCost('pro'), icon: Zap, color: 'amber', desc: 'Best quality, lifelike output' },
-] as const;
+// Name, cost and description ALL come from lib/generationTiers now. They used
+// to be re-typed here and in PreGenerationSheet, which is how "Standard/HD/Pro"
+// survived in two screens after being renamed. Only icon and colour — which are
+// genuinely presentational — stay local.
+const MODE_STYLING: Record<string, { icon: any; color: string }> = {
+  standard: { icon: ImageIcon, color: 'gray' },
+  hd: { icon: Aperture, color: 'blue' },
+  pro: { icon: Gem, color: 'amber' },
+};
+
+const GENERATION_MODES = GENERATION_TIERS.map((t) => ({
+  id: t.id,
+  label: t.label,
+  credits: t.credits,
+  desc: t.description,
+  ...MODE_STYLING[t.id],
+}));
 
 export type GenerationMode = 'standard' | 'hd' | 'pro';
 
@@ -40,8 +49,8 @@ export const ConfirmGenerateScreen: React.FC<ConfirmGenerateScreenProps> = ({
   onBack,
   onBuyCredits,
 }) => {
-  // Default to Standard (cheapest) so a new user's free credits can complete a
-  // first try-on instead of landing on an unaffordable HD tier + paywall.
+  // Default to the cheapest tier so a new user's free credits can complete a
+  // first try-on instead of landing on an unaffordable tier + paywall.
   const [selectedMode, setSelectedMode] = useState<GenerationMode>('standard');
   const modeConfig = GENERATION_MODES.find(m => m.id === selectedMode)!;
   const creditCost = modeConfig.credits;
@@ -171,7 +180,7 @@ export const ConfirmGenerateScreen: React.FC<ConfirmGenerateScreenProps> = ({
         </span>
         <span className="flex items-center gap-1.5 text-[12px] text-gray-400">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          Refund guaranteed
+          Credit back if it fails
         </span>
       </div>
 
