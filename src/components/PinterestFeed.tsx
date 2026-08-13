@@ -51,6 +51,11 @@ export const PinterestFeed: React.FC<PinterestFeedProps> = ({
       const res: any = await apiService.getHairstyles({
         page: p,
         limit: PAGE_SIZE,
+        // 'featured' ranks the textured/protective catalogue first — the same
+        // bias applied to For You and Trending. This is the app's primary
+        // browse surface, so an unbiased popularity sort put European styles
+        // at the top of the first screen everyone sees.
+        sort: 'featured',
         ...(category !== 'All' ? { category } : {}),
       } as any);
       return res?.data?.hairstyles || res?.data || [];
