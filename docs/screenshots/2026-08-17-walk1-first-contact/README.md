@@ -73,11 +73,14 @@ size suggests.
 Note the *placement* is right and should not change: money appears only after the persona has
 chosen a style, never on the first screen.
 
-### 4. LOOK — a floating control clips the hero on the photo screen
+### 4. WITHDRAWN — the left-edge control is not ours
 
-A small circular button sits on the left edge over the hero image and clips the "TRYING ON"
-eyebrow to "RYING ON". Capture `D3-photo-screen.png`, left edge at roughly a third height.
-Present on device, not in the browser capture, so it is a native-only overlay.
+Filed during the walk as a floating button clipping the "TRYING ON" eyebrow. It is the
+Samsung One UI edge-panel handle, a system overlay drawn over every app on this handset.
+Confirmed with `document.elementFromPoint` at that coordinate, which returns a PinCard image
+and no control, and by the absence of any matching element in `src/`. Left in the report
+rather than deleted, because a walk that quietly drops a finding teaches nobody, and the next
+walk on this device will see the same handle.
 
 ### 5. LOOK — two unlabelled filter rows, both starting with "All"
 
@@ -111,6 +114,19 @@ Afros / Bob / …). Neither is labelled and both begin with "All", so a skimming
 - Not reached this pass: airplane mode on the feed and on generate, rotation on feed and
   result, kill-and-relaunch mid-flow, keyboard over the search field. These belong to the
   next Walk 1 pass once finding 1 is fixed, since three of them need a photo in hand.
+
+## Fixes applied after the walk
+
+All findings except the withdrawn one were fixed and re-verified on the device the same
+session; captures `FIX1` to `FIX5`.
+
+Finding 2's root cause turned out to be better than the board's note. Hardware back was not
+generally broken: `decideBack` matched on `pathname` alone, and the studio keeps its state in
+the QUERY STRING, so the photo screen, the confirm screen and the result all report pathname
+`/` and were treated as roots to minimise from. It now reads `studio_status`, with the
+decision table proved before shipping: `/` and `?studio_status=discover` minimise, `upload`
+and `results` navigate back, an open sheet always closes first. Verified live: back from the
+photo screen returns to the feed, back from the feed still minimises.
 
 ## Verdict
 

@@ -85,12 +85,27 @@ function popBackInterceptor(): void {
   close?.();
 }
 
+// Studio screens that ARE a root: back from these should leave the app.
+// Everything else in the studio is a step the user walked into and must be able
+// to walk out of.
+const ROOT_STUDIO_STATES = new Set(['', 'home', 'discover']);
+
 export function decideBack(
   hasOpenSheet: boolean,
-  pathname: string
+  pathname: string,
+  search = ''
 ): 'close-sheet' | 'navigate-back' | 'minimize' {
   if (hasOpenSheet) return 'close-sheet';
-  return BACK_ROOTS.has(pathname) ? 'minimize' : 'navigate-back';
+  if (!BACK_ROOTS.has(pathname)) return 'navigate-back';
+
+  // The studio keeps its state in the QUERY STRING, so every one of its screens
+  // reports pathname '/'. Matching on pathname alone therefore treated the photo
+  // screen, the confirm screen and the result as roots and minimised the app
+  // from all three. Walk 1 watched back drop from the photo screen straight to
+  // the launcher, which is the whole of the "hardware back is unresolved" note
+  // on the board.
+  const state = new URLSearchParams(search).get('studio_status') || '';
+  return ROOT_STUDIO_STATES.has(state) ? 'minimize' : 'navigate-back';
 }
 
 /**
@@ -112,7 +127,7 @@ export function registerHardwareBack(): () => void {
   // used; Ionic's competing exit handler is disabled via
   // setupIonicReact({ hardwareBackButton: false }) in App.tsx.
   const sub = App.addListener('backButton', () => {
-    switch (decideBack(backInterceptors.length > 0, window.location.pathname)) {
+    switch (decideBack(backInterceptors.length > 0, window.location.pathname, window.location.search)) {
       case 'close-sheet':
         popBackInterceptor();
         break;

@@ -1,5 +1,7 @@
 import React from 'react';
 import CameraUpload from '@/components/CameraUpload';
+import { IonIcon } from '@ionic/react';
+import { giftOutline } from 'ionicons/icons';
 import GoogleSignInButton from '@/components/GoogleSignInButton';
 
 type UploadMode = 'camera' | 'library';
@@ -38,11 +40,16 @@ export const UploadState: React.FC<UploadStateProps> = ({
       />
       {!isAuthenticated && !selectedPhoto && (
         <div className="mt-5 mx-1 flex items-center gap-3 px-4 py-3 bg-white rounded-2xl ring-1 ring-black/[0.04] shadow-sm">
-          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
-            <span className="text-sm">🎁</span>
+          {/* Was a gift emoji doing an icon's job, which the design system rules
+              out, next to "5 free credits" — the currency the rest of the app no
+              longer speaks, and a number that did not even match the 10-credit
+              signup grant on the User model. No number is better than a wrong
+              one, and this is the first money a new user ever sees. */}
+          <div className="w-8 h-8 rounded-lg bg-surface flex items-center justify-center flex-shrink-0">
+            <IonIcon icon={giftOutline} style={{ fontSize: 16 }} className="text-brass" />
           </div>
           <p className="text-[12px] text-gray-400 flex-1">
-            <span className="font-medium text-gray-600">5 free credits</span> when you sign up
+            <span className="font-medium text-gray-600">Free looks</span> when you sign up
           </p>
           <GoogleSignInButton
             variant="outline"

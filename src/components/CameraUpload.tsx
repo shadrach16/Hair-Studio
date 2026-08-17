@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { apiService } from '@/lib/api';
 import { PermissionPrimer, type PermissionKind } from '@/components/ui/PermissionPrimer';
+import { pushBackInterceptor } from '@/lib/native';
 import { IonIcon } from '@ionic/react';
 import { cameraOutline, imagesOutline, arrowBackOutline, sunnyOutline } from 'ionicons/icons';
 import {
@@ -150,6 +151,9 @@ export default function CameraUpload({
     // Explain before the OS asks. Once per permission: after the user has
     // granted (or seen it), going through the primer every time is friction.
     if (isNative && !hasSeenPrimer('camera')) {
+      // Restore the branch that renders the primer, so this can never strand the
+      // user however capturePhoto was reached.
+      setMode('choice');
       setPrimer('camera');
       return;
     }
@@ -232,8 +236,29 @@ export default function CameraUpload({
 
   // --- NAVIGATION & STATE RESET ---
 
+  // The camera overlay is component state, not a route or an Ionic overlay, so
+  // the global back handler had nothing to consult and back fell through to
+  // minimise: Walk 1 watched it exit Hair Studio and surface another app.
+  // Registering a closer puts it on the same interceptor stack the sheets use.
+  useEffect(() => {
+    if (mode !== 'camera') return;
+    return pushBackInterceptor(() => {
+      setMode('choice');
+      setCameraError(null);
+    });
+  }, [mode]);
+
   const handleCameraClick = () => {
     triggerHapticFeedback(ImpactStyle.Light);
+    // The primer has to be raised BEFORE the mode switch. It is rendered inside
+    // the 'choice' branch, so switching first unmounts the very sheet we are
+    // about to open: the user lands on a camera view that never opens, with no
+    // dialog, no preview and no error. Walk 1 found exactly that dead end on a
+    // fresh install, on the app's primary action.
+    if (isNative && !hasSeenPrimer('camera')) {
+      setPrimer('camera');
+      return;
+    }
     setMode('camera');
     if (isNative) {
       // On native, immediately launch the camera
@@ -465,7 +490,7 @@ export default function CameraUpload({
             if (!kind) return;
             markPrimerSeen(kind);
             // Re-enter the same handler; the primer gate is now satisfied.
-            if (kind === 'camera') capturePhoto();
+            if (kind === 'camera') handleCameraClick();
             else handleUploadClick();
           }}
         />

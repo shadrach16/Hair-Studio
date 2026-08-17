@@ -24,6 +24,10 @@ import {
   type Audience,
 } from '@/lib/audience';
 
+// Mirrors the ratio set in PinCard so the skeleton masonry staggers the way the
+// real one will, and the grid does not jump when results arrive.
+const SKELETON_RATIOS = [3 / 4, 4 / 5, 1, 5 / 7, 2 / 3, 3 / 4, 4 / 5, 1];
+
 const PAGE_SIZE = 30;
 
 interface PinterestFeedProps {
@@ -47,6 +51,8 @@ export const PinterestFeed: React.FC<PinterestFeedProps> = ({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  // Distinct from `loading`: a filter change replaces the grid, paging appends.
+  const [refreshing, setRefreshing] = useState(false);
   const sentinel = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -77,6 +83,11 @@ export const PinterestFeed: React.FC<PinterestFeedProps> = ({
   // Reset on filter change.
   useEffect(() => {
     let cancelled = false;
+    // Clear immediately. Without this the old results stay on screen for the
+    // whole round trip and the tap looks like it did nothing, then the grid
+    // silently swaps underneath the reader. Skeletons say "this is changing".
+    setItems([]);
+    setRefreshing(true);
     setLoading(true);
     setPage(1);
     fetchPage(1, active)
@@ -85,7 +96,11 @@ export const PinterestFeed: React.FC<PinterestFeedProps> = ({
         setItems(list);
         setHasMore(list.length >= PAGE_SIZE);
       })
-      .finally(() => !cancelled && setLoading(false));
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+        setRefreshing(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -173,7 +188,21 @@ export const PinterestFeed: React.FC<PinterestFeedProps> = ({
         </div>
       )}
 
-      {items.length === 0 && !loading ? (
+      {refreshing ? (
+        <div className="px-2 pt-1">
+          <div className="columns-2 gap-2">
+            {SKELETON_RATIOS.map((r, i) => (
+              <div key={i} className="mb-2 break-inside-avoid">
+                <div
+                  className="w-full animate-pulse rounded-2xl bg-hairline/60"
+                  style={{ aspectRatio: String(r) }}
+                />
+                <div className="mt-1.5 h-3 w-3/4 animate-pulse rounded bg-hairline/50" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : items.length === 0 && !loading ? (
         <EmptyState
           icon={<IonIcon icon={imagesOutline} style={{ fontSize: 24 }} />}
           title="Nothing here yet"

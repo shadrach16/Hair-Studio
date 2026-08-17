@@ -20,8 +20,12 @@ export type Audience = 'all' | 'female' | 'male';
 
 const KEY = 'hairstudio_audience';
 
+// "Everyone" rather than "All": the category row directly below also opens with
+// "All", and Walk 1 watched a skimming reader hit "All ... All" on two unlabelled
+// rows with no way to tell them apart. Different words cost nothing and remove
+// the ambiguity without adding chrome.
 export const AUDIENCE_OPTIONS: Array<{ id: Audience; label: string }> = [
-  { id: 'all', label: 'All' },
+  { id: 'all', label: 'Everyone' },
   { id: 'female', label: 'Women' },
   { id: 'male', label: 'Men' },
 ];
