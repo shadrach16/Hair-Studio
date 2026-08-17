@@ -74,7 +74,6 @@ export const PaywallPreview: React.FC = () => (
 export const PhotoPreview: React.FC = () => (
   <div className="mx-auto w-full max-w-md px-4 py-4">
     <CameraUpload
-      mode="camera"
       onPhotoSelect={() => {}}
       onClearPhoto={() => {}}
       selectedPhoto={null}

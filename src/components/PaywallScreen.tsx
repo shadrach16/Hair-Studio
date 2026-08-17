@@ -4,7 +4,7 @@ import { apiService } from '@/lib/api';
 import { usePayment } from '../hooks/usePayment'; 
 import { Capacitor } from '@capacitor/core';
 import { PurchasesPackage } from '@revenuecat/purchases-capacitor';
-import { Zap, Loader2, RotateCcw, Crown, Coins } from 'lucide-react'; 
+import { Zap, Loader2, RotateCcw, Coins } from 'lucide-react'; 
 import type { CreditPack, SubscriptionPlan } from '@/lib/pricingSystem';
 
 // Tier visual config
@@ -28,7 +28,6 @@ const productMatches = (identifier: string, productId?: string): boolean =>
 
 // --- Main Paywall Screen Component ---
 
-type PaywallTab = 'credits' | 'subscriptions';
 
 export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = ({ onClose, context }) => {
     const { 
@@ -48,23 +47,18 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
     } = usePayment();
 
     // Default to Credit Packs (cheap entry point) — leading with annual plans scared users off.
-    const [activeTab, setActiveTab] = useState<PaywallTab>('credits');
-    const userPickedTab = useRef(false);
     const [isRestoring, setIsRestoring] = useState(false);
-
-    const selectTab = (tab: PaywallTab) => {
-        userPickedTab.current = true;
-        setActiveTab(tab);
-    };
 
     // Track paywall view on mount
     useEffect(() => {
         apiService.trackEvent('paywall_viewed', {
             source: 'credits_modal',
             packagesAvailable: packages.length,
-            tab: activeTab
+            // Was `tab: activeTab`. There is one surface now, so the dimension
+            // would only ever record 'credits'.
+            surface: 'top_up'
         });
-    }, [packages.length, activeTab]);
+    }, [packages.length]);
 
     const paywallItems = creditPacks
         .filter((catalogPack) => catalogPack.storefronts.revenueCat?.productId)
@@ -78,26 +72,6 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
         .filter((item): item is { catalogPack: CreditPack; rcPackage: PurchasesPackage } => item !== null);
 
     // Build subscription items matched to RevenueCat packages
-    const subscriptionItems = subscriptions
-        .filter((sub) => sub.storefronts.revenueCat?.productId)
-        .sort((left, right) => left.displayOrder - right.displayOrder)
-        .map((sub) => {
-            const rcPackage = packages.find(
-                (candidate) => productMatches(candidate.product.identifier, sub.storefronts.revenueCat?.productId)
-            );
-            return rcPackage ? { sub, rcPackage } : null;
-        })
-        .filter((item): item is { sub: SubscriptionPlan; rcPackage: PurchasesPackage } => item !== null);
-
-    const hasSubscriptions = subscriptionItems.length > 0;
-
-    // Keep Credit Packs as the landing tab unless the user explicitly picks a tab
-    // (avoids a race where subs load after first paint and steal focus).
-    useEffect(() => {
-        if (!userPickedTab.current) {
-            setActiveTab('credits');
-        }
-    }, [hasSubscriptions]);
 
     if (!storeReady || isCatalogLoading) {
         return (
@@ -121,41 +95,14 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
                     </p>
                 </div>
             )}
-            {/* Tab Switcher — only show if subscriptions exist */}
-            {hasSubscriptions && (
-                <div className="flex bg-gray-100 rounded-xl p-1" role="tablist" aria-label="Payment options">
-                    <button
-                        role="tab"
-                        aria-selected={activeTab === 'credits'}
-                        onClick={() => selectTab('credits')}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[13px] font-semibold transition-all ${
-                            activeTab === 'credits'
-                                ? 'bg-white text-gray-900 shadow-sm'
-                                : 'text-gray-400 hover:text-gray-600'
-                        }`}
-                    >
-                        <Zap className="w-3.5 h-3.5" aria-hidden="true" />
-                        Credit Packs
-                    </button>
-                    <button
-                        role="tab"
-                        aria-selected={activeTab === 'subscriptions'}
-                        onClick={() => selectTab('subscriptions')}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[13px] font-semibold transition-all ${
-                            activeTab === 'subscriptions'
-                                ? 'bg-white text-gray-900 shadow-sm'
-                                : 'text-gray-400 hover:text-gray-600'
-                        }`}
-                    >
-                        <Crown className="w-3.5 h-3.5" aria-hidden="true" />
-                        Plans
-                    </button>
-                </div>
-            )}
+            {/* The Plans tab is gone. TierChooser above this component already
+                sells Free / Plus / Studio, so the tab bar offered a SECOND,
+                different subscription surface one scroll below the first, with a
+                different product set and different language. This screen now does
+                one job: top-up packs. */}
 
             {/* Content */}
-            <div role="tabpanel" aria-label={activeTab === 'credits' ? 'Credit packs' : 'Subscription plans'}>
-                {activeTab === 'credits' ? (
+            <div aria-label="Top-up packs">
                     <div className="space-y-2">
                         {paywallItems.length > 0 ? (
                             paywallItems.map((item) => {
@@ -226,72 +173,6 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
                             </div>
                         )}
                     </div>
-                ) : (
-                    <div className="space-y-2">
-                        {subscriptionItems.map((item) => {
-                            const isProcessing = isProcessingProductId === item.rcPackage.product.identifier;
-                            return (
-                                <button
-                                    key={item.sub.id}
-                                    onClick={() => buySubscription(item.rcPackage.product.identifier)}
-                                    disabled={!!isProcessingProductId}
-                                    className={`
-                                        relative flex items-center gap-3 w-full p-3 rounded-2xl text-left transition-all duration-150
-                                        ${item.sub.popular
-                                            ? 'bg-[#1a1a1a] ring-1 ring-black/5'
-                                            : 'bg-gray-50 hover:bg-gray-100'
-                                        }
-                                        ${isProcessingProductId ? 'opacity-60 cursor-not-allowed' : 'active:scale-[0.98]'}
-                                    `}
-                                >
-                                    {item.sub.popular && (
-                                        <span className="absolute -top-2 left-4 text-[10px] font-bold tracking-wide uppercase bg-amber-400 text-gray-900 px-2 py-0.5 rounded-full">
-                                            {item.sub.savings || 'Popular'}
-                                        </span>
-                                    )}
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${item.sub.popular ? 'bg-amber-400/20' : 'bg-violet-50'}`}>
-                                        <Crown className={`w-5 h-5 ${item.sub.popular ? 'text-amber-400' : 'text-violet-500'}`} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className={`text-[14px] font-semibold leading-tight ${item.sub.popular ? 'text-white' : 'text-gray-900'}`}>
-                                            {item.sub.name}
-                                        </p>
-                                        <p className={`text-[12px] mt-0.5 leading-snug ${item.sub.popular ? 'text-gray-400' : 'text-gray-500'}`}>
-                                            {item.sub.displayLabel || item.sub.description}
-                                        </p>
-                                        {item.sub.trialDays ? (
-                                            <p className="text-[11px] mt-1 font-bold text-emerald-400">
-                                                {item.sub.trialDays}-day free trial
-                                            </p>
-                                        ) : null}
-                                    </div>
-                                    <div className={`
-                                        flex-shrink-0 px-3.5 py-1.5 rounded-xl text-[13px] font-bold transition-all
-                                        ${isProcessing
-                                            ? 'bg-gray-200 text-gray-500'
-                                            : item.sub.popular
-                                                ? 'bg-white text-gray-900'
-                                                : 'bg-[#1a1a1a] text-white'
-                                        }
-                                    `}>
-                                        {isProcessing
-                                            ? <Loader2 className="w-4 h-4 animate-spin" />
-                                            : item.rcPackage.product.priceString + (item.sub.interval === 'year' ? '/yr' : '/mo')
-                                        }
-                                    </div>
-                                </button>
-                            );
-                        })}
-                        {isPro && (
-                            <p className="text-center text-[11px] text-emerald-600 mt-1">
-                                You have an active subscription
-                            </p>
-                        )}
-                        <p className="text-center text-[10px] text-gray-400 mt-1.5">
-                            Plans renew automatically. Cancel anytime.
-                        </p>
-                    </div>
-                )}
             </div>
 
             {/* Restore + Footer */}

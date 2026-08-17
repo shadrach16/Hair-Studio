@@ -30,7 +30,6 @@ export const UploadState: React.FC<UploadStateProps> = ({
   <div className="flex-1 flex items-start justify-center px-1 py-4 overflow-y-auto">
     <div className="w-full max-w-md">
       <CameraUpload
-        mode={uploadMode}
         onPhotoSelect={onPhotoSelect}
         onClearPhoto={onClearPhoto}
         selectedPhoto={selectedPhoto}
