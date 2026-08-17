@@ -50,10 +50,18 @@ const config: CapacitorConfig = {
       // Hand off as soon as the WebView has painted rather than sitting on a
       // timer. The old config had no SplashScreen block at all, so it used the
       // 500ms default fade with autoHide on a fixed delay.
+      // autoHide stays TRUE deliberately: it is the backstop. If the web layer
+      // never calls hide(), the splash still lifts on its own rather than
+      // locking the app behind a paper rectangle.
       "launchAutoHide": true,
       "launchFadeOutDuration": 200,
       "backgroundColor": "#FAF8F5",
-      "launchShowDuration": 1000,
+      // Was 1000. Walk 5 measured the splash holding the screen for ~2.2s with
+      // nothing drawn on it — this OEM renders windowSplashScreenBackground but
+      // not the animated icon, so a long duration buys a longer blank. Hand over
+      // quickly instead; #boot in index.html carries the brand beat on the same
+      // colour, and main.tsx holds it long enough to be read.
+      "launchShowDuration": 300,
       // FIT_CENTER, not CENTER_CROP: the layer-list's intrinsic size is the
       // 170dp mark, so CENTER_CROP would scale it about 5x to fill the screen.
       "androidScaleType": "FIT_CENTER",

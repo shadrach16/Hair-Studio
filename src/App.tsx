@@ -20,7 +20,6 @@ import { Filesystem } from '@capacitor/filesystem';
 import { IonApp, setupIonicReact } from '@ionic/react';
 import { initStatusBar, registerHardwareBack } from '@/lib/native';
 import { App as CapacitorApp, URLOpenListenerEvent } from '@capacitor/app';
-import AppLoader from '@/components/AppLoader';
 import { captureAttribution, reportInstallOnce, shouldCheckInstallReferrer, markInstallReferrerChecked } from '@/lib/attribution';
 import { readInstallReferrer } from '@/lib/installReferrer';
 
@@ -306,10 +305,17 @@ const AppRoutes = () => {
  );
 };
 
+// The in-app AppLoader was deleted here, not replaced. It was a SECOND brand
+// screen — pure white (breaking the one-plane rule between a paper splash and a
+// paper feed), showing the retired four-European-faces badge fetched from
+// Cloudinary at boot, a wordmark set in Fascinate Inline (a face plan §1.1 kills,
+// and not bundled, so it fell back to system sans), the words "AI Try-On Studio",
+// and a 3-second fixed timer gated on nothing. Worse, being `fixed inset-0
+// z-[100]` it covered the #boot beat in index.html — the Fraunces wordmark that
+// exists precisely because this OEM will not draw the native splash monogram — so
+// the one designed brand beat in the product was the only one nobody could see.
+// One beat now: the native splash hands over to #boot on the same surface colour.
 const App = () => {
- const [showLoader, setShowLoader] = useState(true);
- const handleLoaderFinish = useCallback(() => setShowLoader(false), []);
-
  return (
   // IonApp provides the platform context Ionic components (sheet modals, native
   // back-button handling) need. We use Ionic components standalone and keep
@@ -320,7 +326,6 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
      <TooltipProvider>
       <Toaster position="top-center" richColors expand={true} closeButton />
-      {showLoader && <AppLoader onFinish={handleLoaderFinish} />}
       {/* 5. Wrap the entire app with HelmetProvider */}
       <HelmetProvider>
        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>

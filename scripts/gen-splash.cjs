@@ -52,28 +52,91 @@ const BRASS_DARK = '#D4A94C';
 // circle, so the mark must sit well inside its own canvas.
 const DENSITIES = { ldpi: 128, mdpi: 170, hdpi: 255, xhdpi: 340, xxhdpi: 510, xxxhdpi: 680 };
 
-const FONT = fs
-  .readFileSync(
-    path.join(ROOT, 'node_modules/@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2')
-  )
+// Norican — the logotype face, and ONLY the logotype face. Plan §1.1 allows
+// exactly this: "a single lettering face for the 'Hair Studio' logotype only,
+// splash + auth header. Never UI text." It is SIL OFL 1.1, self-hosted from
+// node_modules, so nothing is fetched at runtime.
+//
+// The previous mark was "HS" set in Fraunces. Fraunces is a serif, and at
+// monogram size a two-letter serif lockup reads as a monogram on a business
+// card rather than as a salon's own hand. Penmanship is the point: this is a
+// beauty brand, and a signature says "somebody did this to your hair" in a way
+// a set capital cannot.
+const SCRIPT_FONT = fs
+  .readFileSync(path.join(ROOT, 'node_modules/@fontsource/norican/files/norican-latin-400-normal.woff2'))
   .toString('base64');
 
+const FACE = `@font-face{font-family:'Norican';src:url(data:font/woff2;base64,${SCRIPT_FONT}) format('woff2');
+              font-weight:400;font-display:block;}`;
+
 /**
- * The mark: "HS" in Fraunces, the app's display face — the same letterforms as
- * the wordmark in lib/shareCard.ts, so the splash and the share card are
- * recognisably one brand. A monogram rather than the full wordmark because
- * Android 12+ centre-crops this into a circle; "Hair Studio" would be clipped
- * to "air Stu".
+ * The native icon: a script "HS" ligature.
+ *
+ * Still a monogram rather than the full wordmark, and for an unchanged reason —
+ * Android 12+ centre-crops windowSplashScreenAnimatedIcon into a circle, so
+ * "Hair Studio" would be clipped to "air Stu". The letters now come from the
+ * script face, so the circle holds a signature rather than a serif lockup.
  */
 function markHtml(size, colour) {
   return `<!doctype html><meta charset="utf-8"><style>
-    @font-face{font-family:'Fraunces';src:url(data:font/woff2;base64,${FONT}) format('woff2');
-               font-weight:100 900;font-display:block;}
+    ${FACE}
     html,body{margin:0;padding:0;width:${size}px;height:${size}px;background:transparent;}
     .w{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
-    .m{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:${Math.round(size * 0.42)}px;
-       color:${colour};letter-spacing:-0.04em;line-height:1;}
+    .m{font-family:'Norican',cursive;font-size:${Math.round(size * 0.46)}px;
+       color:${colour};line-height:1;padding-bottom:${Math.round(size * 0.04)}px;}
   </style><div class="w"><div class="m">HS</div></div>`;
+}
+
+/**
+ * The full wordmark, for the beat the WebView draws.
+ *
+ * This is the one that actually gets seen: the test handset renders
+ * windowSplashScreenBackground but not the icon, so #boot in index.html is the
+ * brand moment in practice. It ships as a PNG inlined into the HTML as a data
+ * URI rather than as a webfont, because #boot paints BEFORE any bundle or font
+ * request — asking for Norican there would either block the first paint or fall
+ * back to a system cursive, and a wordmark rendered in whatever cursive the
+ * device happens to own is worse than no wordmark at all.
+ */
+function wordmarkHtml(w, h, colour) {
+  return `<!doctype html><meta charset="utf-8"><style>
+    ${FACE}
+    html,body{margin:0;padding:0;width:${w}px;height:${h}px;background:transparent;}
+    .w{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+    .m{font-family:'Norican',cursive;font-size:${Math.round(h * 0.62)}px;color:${colour};
+       line-height:1;letter-spacing:.01em;white-space:nowrap;}
+  </style><div class="w"><div class="m">Hair Studio</div></div>`;
+}
+
+// Sized for the largest place it is drawn (300 CSS px wide) at 2x, and no
+// larger: this PNG is inlined into the HTML head, so every byte is paid before
+// the first paint. 1200x300 came out at 98KB of base64, which is a worse boot
+// than the blank screen it replaces.
+const WORDMARK_W = 640;
+const WORDMARK_H = 160;
+
+/**
+ * Write the rendered wordmark into index.html between its markers.
+ *
+ * index.html is hand-edited and this script deliberately does not own it, so it
+ * replaces only what is between the two comment markers and fails if they are
+ * missing rather than guessing where the mark goes.
+ */
+function injectWordmark(lightDataUri, darkDataUri) {
+  const file = path.join(ROOT, 'index.html');
+  const html = fs.readFileSync(file, 'utf8');
+  const start = '/* WORDMARK:START */';
+  const end = '/* WORDMARK:END */';
+  const i = html.indexOf(start);
+  const j = html.indexOf(end);
+  if (i === -1 || j === -1) {
+    throw new Error('index.html is missing the WORDMARK:START / WORDMARK:END markers');
+  }
+  const block = `${start}
+    #boot .mark { background-image: url("${lightDataUri}"); }
+    @media (prefers-color-scheme: dark) { #boot .mark { background-image: url("${darkDataUri}"); } }
+    ${end}`;
+  fs.writeFileSync(file, html.slice(0, i) + block + html.slice(j + end.length));
 }
 
 const SPLASH_XML = `<?xml version="1.0" encoding="utf-8"?>
@@ -263,6 +326,29 @@ function assertXmlCommentsValid(name, xml) {
     }
     console.log(`  monogram (${variant}) x${Object.keys(DENSITIES).length} densities`);
   }
+
+  // 1b. The wordmark for #boot, inlined into index.html as a data URI.
+  const uris = {};
+  for (const [variant, colour] of [['light', BRASS_LIGHT], ['dark', BRASS_DARK]]) {
+    const page = await browser.newPage({
+      viewport: { width: WORDMARK_W, height: WORDMARK_H },
+      deviceScaleFactor: 1,
+    });
+    await page.setContent(wordmarkHtml(WORDMARK_W, WORDMARK_H, colour), { waitUntil: 'load' });
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForTimeout(120);
+    const file = path.join(SRC_ART, `wordmark-${variant}.png`);
+    await page.screenshot({ path: file, omitBackground: true });
+    uris[variant] = `data:image/png;base64,${fs.readFileSync(file).toString('base64')}`;
+    await page.close();
+  }
+  injectWordmark(uris.light, uris.dark);
+  const kb = (uris.light.length + uris.dark.length) / 1024;
+  console.log(`  wordmark (light + dark) inlined into index.html, ${kb.toFixed(1)}KB of data URI`);
+  if (kb > 90) {
+    console.error(`  ! wordmark data URIs are ${kb.toFixed(1)}KB — that is paid before first paint`);
+  }
+
   await browser.close();
 
   // 2. Remove Capacitor's stock full-screen splash bitmaps — they would collide

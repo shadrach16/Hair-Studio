@@ -41,6 +41,7 @@ import { apiService } from '@/lib/api';
 import { renderShareCard } from '@/lib/shareCard';
 import { BASE_GENERATION_COST } from '@/lib/generationTiers';
 import { buildReferralLink } from '@/lib/attribution';
+import { setFullBleedStatusBar, syncStatusBar } from '@/lib/native';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ResultsViewerProps {
@@ -90,6 +91,16 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
   onShowPricing,
   onShowAuth,
 }) => {
+  // The result covers the whole shell, so the status bar must stop being paper
+  // with dark icons and become part of the photograph. lib/native.ts has always
+  // had setFullBleedStatusBar for exactly this and §4.2 calls a mismatched
+  // status bar over a photo "an instant webview tell" — it was simply never
+  // called from anywhere. Restored on the way out so the feed gets its plane back.
+  useEffect(() => {
+    void setFullBleedStatusBar();
+    return () => { void syncStatusBar('light'); };
+  }, []);
+
   const [beforeImageUrl, setBeforeImageUrl] = useState<string | null>(null);
   const [isAfterImageLoading, setIsAfterImageLoading] = useState(true);
   const [isCreatingCollage, setIsCreatingCollage] = useState(false);

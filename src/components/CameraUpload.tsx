@@ -516,7 +516,12 @@ export default function CameraUpload({
               alt={selectedHairstyle.name}
               className="h-full w-full object-cover"
             />
-            <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-surface via-surface/75 to-transparent" />
+            {/* Was h-3/4 with a 75%-opaque surface at its midpoint, which put
+                near-solid paper across the model's face — on the one screen whose
+                job is "here is the style you are about to wear", the scrim was
+                erasing the evidence. Half the height and a gentler ramp still
+                carries the image into the actions without eating the face. */}
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-surface via-surface/45 to-transparent" />
             {onBack && (
               <button
                 onClick={onBack}

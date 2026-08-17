@@ -136,7 +136,7 @@ export const ProcessingState: React.FC<ProcessingStateProps> = ({
           />
         </div>
 
-        <p className="mt-5 text-[11px] text-white/35">Credit back if it fails</p>
+        <p className="mt-5 text-[11px] text-white/35">Your look is returned if this fails</p>
       </div>
     </div>
   );

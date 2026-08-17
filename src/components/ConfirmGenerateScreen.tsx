@@ -198,7 +198,12 @@ export const ConfirmGenerateScreen: React.FC<ConfirmGenerateScreenProps> = ({
       {canAfford ? (
         <Button
           onClick={() => onGenerate(selectedMode)}
-          className="w-full h-14 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl text-base font-semibold shadow-md transition-all active:scale-[0.98]"
+          /* Was bg-gray-900 — Tailwind's cool blue-black, off-palette against the
+             warm --ink the system defines, and the only primary in the app not
+             wearing the accent. Walk 5: brass was marking the UPSELL on this
+             screen and not the action, so the one moment the eye was pulled was
+             the moment you could not afford to continue. */
+          className="w-full h-14 bg-brass hover:bg-brass text-white rounded-2xl text-base font-semibold shadow-md transition-all active:scale-[0.98]"
         >
           Generate
           <span className="ml-2 flex items-center gap-1 px-2 py-0.5 bg-white/15 rounded-full text-[12px]">
@@ -209,7 +214,7 @@ export const ConfirmGenerateScreen: React.FC<ConfirmGenerateScreenProps> = ({
         </Button>
       ) : (
         <div className="space-y-2.5">
-          <p className="text-center text-[12px] text-amber-600 font-medium">
+          <p className="text-center text-[12px] text-brass-ink font-medium">
             {(() => {
               const short = Math.ceil((creditCost - userCredits) / BASE_GENERATION_COST);
               return `You need ${short} more look${short !== 1 ? 's' : ''}`;
@@ -217,7 +222,11 @@ export const ConfirmGenerateScreen: React.FC<ConfirmGenerateScreenProps> = ({
           </p>
           <Button
             onClick={onBuyCredits}
-            className="w-full h-14 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-2xl text-base font-semibold shadow-md transition-all active:scale-[0.98]"
+            /* Flat brass like every other primary. It was the only gradient in
+               the app, and an orange one at that — amber-to-orange is the
+               warning-yellow the palette moved off. The two buttons are mutually
+               exclusive states, so this is still one brass primary per screen. */
+            className="w-full h-14 bg-brass hover:bg-brass text-white rounded-2xl text-base font-semibold shadow-md transition-all active:scale-[0.98]"
           >
             Get more looks
           </Button>
