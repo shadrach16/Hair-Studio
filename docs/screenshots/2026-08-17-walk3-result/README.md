@@ -7,7 +7,7 @@ try-on can run and the walk's central question cannot be answered this pass.
 
 ## Findings, ranked
 
-### 1. SERIOUS — the result screen reports credits as looks, and overstates them
+### 1. FIXED — the result screen reported credits as looks, and overstated them
 
 With one credit the nudge reads **"1 left — get more"**. One credit buys zero looks: a Preview
 costs two. So the screen tells a user they have something left at the exact moment they have
@@ -21,7 +21,7 @@ This is the last screen the credit-to-looks conversion missed. Every other money
 converted earlier today, which is exactly why it stands out now: the app is consistent
 everywhere else, so this reads as a bug rather than a convention.
 
-### 2. LOOK — the compare handle clips off-screen at the extremes
+### 2. FIXED — the compare handle clipped off-screen at the extremes
 
 Dragged to roughly 6%, the brass divider handle is cut in half by the left edge. Capture
 `W3-2-compare-extreme.png`. Nothing breaks, but the grab target is the thing the user is
@@ -56,6 +56,18 @@ The half of this walk that matters most cannot run:
   and a rate limit now produce different advice, both leading with "You have not been
   charged"), but no real 429 has been observed through the UI, and the credit refund on
   failure has not been watched happen.
+
+## Fixes applied after the walk
+
+- **Looks, not credits.** `ResultsViewer` converts once at the Preview rate, the same
+  `BASE_GENERATION_COST` the header chip and the paywall use, and thresholds in looks.
+  Verified across the boundary: 0 and 1 credit both read "Out of looks" (1 credit buys none),
+  2 credits reads "1 look left", 4 and above show no nudge at all.
+- **The handle stays on screen.** The clamp is derived from the handle's own half-width
+  rather than a guessed percentage; a flat 5% still clipped it by a pixel at 412px, and the
+  exact half-width was one pixel over at the right edge because of subpixel rounding. Now
+  2..46 at the far left and 368..412 at the far right, whole at both ends. Capture
+  `FIX-handle-clamped.png`.
 
 ## Verdict
 

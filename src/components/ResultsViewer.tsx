@@ -39,6 +39,7 @@ import { cn } from '@/lib/utils';
 import { StarRating } from '@/components/StarRating';
 import { apiService } from '@/lib/api';
 import { renderShareCard } from '@/lib/shareCard';
+import { BASE_GENERATION_COST } from '@/lib/generationTiers';
 import { buildReferralLink } from '@/lib/attribution';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -71,6 +72,9 @@ const ENHANCE = 'contrast(1.04) saturate(1.06) brightness(1.02)';
 // the original selfie. 80 is deliberately above the delivery thresholds (35/45/55)
 // — the line should mean "this genuinely looks like you", not "this shipped".
 const LIKENESS_THRESHOLD = 80;
+
+// The compare handle's diameter (h-11 w-11). Used to keep it fully on screen.
+const HANDLE_PX = 44;
 
 const ResultsViewer: React.FC<ResultsViewerProps> = ({
   selectedPhoto,
@@ -341,7 +345,14 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
     const el = sliderContainerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    setSliderPosition(Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100)));
+    // Clamped, not 0-100: at the extremes the brass handle was cut in half by the
+    // screen edge, so the control the user is holding left the screen. The bound
+    // is derived from the handle's own half-width rather than a guessed
+    // percentage — a flat 5% still clipped it by a pixel at 412px wide.
+    const pct = ((clientX - rect.left) / rect.width) * 100;
+    // +1 for subpixel rounding: the exact half-width still left it 1px over.
+    const edge = ((HANDLE_PX / 2 + 1) / rect.width) * 100;
+    setSliderPosition(Math.min(100 - edge, Math.max(edge, pct)));
   }, []);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
@@ -377,6 +388,12 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
   }
 
   const showingBefore = peek;
+
+  // The nudge said "1 left" on one credit, which buys zero looks: the noun was
+  // looks and the number was credits. Convert once, here, at the same Preview
+  // rate LooksChip and the paywall use, and threshold in looks too so the nudge
+  // fires at a point that means something to the reader.
+  const looksLeft = Math.floor(Math.max(0, availableCredits ?? 0) / BASE_GENERATION_COST);
 
   return (
     <div className="fixed inset-0 z-50 select-none overflow-hidden bg-[#0B0B0B]">
@@ -578,12 +595,14 @@ const ResultsViewer: React.FC<ResultsViewerProps> = ({
           >
             Sign in to save this look
           </button>
-        ) : !isPro && typeof availableCredits === 'number' && availableCredits < 3 && onShowPricing ? (
+        ) : !isPro && typeof availableCredits === 'number' && looksLeft < 2 && onShowPricing ? (
           <button
             onClick={() => { triggerHaptic(); onShowPricing(); }}
             className="mt-3 w-full text-center text-[13px] text-white/70 underline underline-offset-4"
           >
-            {availableCredits === 0 ? 'Out of looks — get more' : `${availableCredits} left — get more`}
+            {looksLeft === 0
+              ? 'Out of looks — get more'
+              : `${looksLeft} look${looksLeft === 1 ? '' : 's'} left — get more`}
           </button>
         ) : null}
       </div>
