@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Capacitor } from '@capacitor/core';
 import { apiService } from '@/lib/api';
 import { EMPTY_PRICING_CATALOG, type PricingCatalog } from '@/lib/pricingSystem';
+import { BASE_GENERATION_COST } from '@/lib/generationTiers';
 
 // Import RevenueCat
 import {
@@ -170,7 +171,7 @@ export function usePayment() {
         const packToBuy = packages.find(p => p.product.identifier === productId);
 
         if (!packToBuy) {
-            toast.error(`Product "${productId}" not found.`);
+            toast.error("That pack isn't available right now.");
             console.warn("RC Package not found for product ID:", productId);
             return;
         }
@@ -186,7 +187,7 @@ export function usePayment() {
 
             console.log("[RC] Purchase successful:", productIdentifier);
             toast.success("Purchase successful!", {
-                description: "Adding your credits..."
+                description: "Adding your looks..."
             });
 
             // Webhook-independent grant: have the backend verify this purchase against
@@ -250,7 +251,11 @@ export function usePayment() {
 
         const packToBuy = packages.find(p => p.product.identifier === productId);
         if (!packToBuy) {
-            toast.error(`Subscription "${productId}" not found.`);
+            // The paywall now gates its CTA on the live offering, so this should
+            // be unreachable — but if it is ever reached, a person trying to pay
+            // us should not be handed an internal product id in a red box.
+            console.warn('[RC] Subscription package not found for', productId);
+            toast.error("That plan isn't available to buy yet.");
             return;
         }
 
@@ -262,8 +267,8 @@ export function usePayment() {
             });
 
             console.log("[RC] Subscription purchase successful:", productIdentifier);
-            toast.success("Subscription activated!", {
-                description: "Your credits will be refreshed monthly."
+            toast.success("You're all set", {
+                description: "Your daily looks start now."
             });
 
             // Sync subscription state with backend
@@ -317,12 +322,35 @@ export function usePayment() {
             // of the paying customers, since packs are where the revenue is.
             // The backend sweeps the RevenueCat record and grants idempotently.
             const packs = await apiService.restorePurchases();
+
+            // Walk 4: the grant endpoint is behind `protect`, so signed out it
+            // 401s — and this used to read `grantedCredits || 0` off the failure
+            // and announce "Nothing to restore on this account." The server had
+            // never been asked. That sentence was being shown to exactly the
+            // people it hurts most: the production database lost every user
+            // record, so every past customer IS signed out right now, and this
+            // is their only route back to what they paid for.
+            if (!packs?.success && !restoredSubscription) {
+                toast.info("Sign in to restore your purchases", {
+                    description:
+                        "They are held against your account, so we need to know who you are.",
+                });
+                return { restored: false, needsAuth: true };
+            }
+
             const grantedCredits = packs?.data?.grantedCredits || 0;
 
             await refreshUser();
 
             if (grantedCredits > 0) {
-                toast.success(`Restored ${grantedCredits} credits`);
+                // Said in looks, like every other money surface. The remainder
+                // is not lost, only unadvertised — see looksIn() in PaywallScreen.
+                const looks = Math.floor(grantedCredits / BASE_GENERATION_COST);
+                toast.success(
+                    looks > 0
+                        ? `Restored ${looks} ${looks === 1 ? 'look' : 'looks'}`
+                        : 'Your purchases are back on your account'
+                );
                 return { restored: true, grantedCredits };
             }
             if (restoredSubscription) {

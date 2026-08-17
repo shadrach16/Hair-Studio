@@ -76,7 +76,47 @@ export function tier(id: TierId): Tier {
   return TIERS.find((t) => t.id === id) ?? TIERS[0];
 }
 
-/** "$3.99/mo" — or "Free". Kept here so no component formats money itself. */
-export function priceLabel(t: Tier): string {
-  return t.priceUsd === 0 ? 'Free' : `$${t.priceUsd.toFixed(2)}/mo`;
+/**
+ * What the store will actually charge, keyed by the tier's `productId`.
+ *
+ * Walk 4 found the paywall printing "$3.99/mo" to a handset whose Play account
+ * bills in naira — the price was a literal in this file, and §7.4 step 3 says in
+ * so many words that the paywall reads the offering and hardcodes no store price.
+ * `priceUsd` above is the PLAN's number, used for ordering and for the margin
+ * maths; it is never shown to anyone once the store has quoted a real one.
+ */
+export type StorePrices = Record<string, string>;
+
+/**
+ * Google Play returns subscription identifiers as "subscriptionId:basePlanId"
+ * ("plus_annual:plus-annual-1y"), so a plain id must match the head as well as
+ * the whole. One-time packs have no colon and still match exactly.
+ */
+export function productMatches(identifier: string, productId?: string): boolean {
+  return !!productId && (identifier === productId || identifier.split(':')[0] === productId);
+}
+
+/**
+ * The price to print, or null when the store has not offered this product.
+ *
+ * Null is the important case and the reason this returns one: a tier whose
+ * product does not exist in the live offering cannot be bought, so quoting a
+ * price for it is an advertisement for something that is not for sale.
+ */
+export function priceLabel(t: Tier, prices?: StorePrices): string | null {
+  if (t.priceUsd === 0) return 'Free';
+  const quoted = t.productId ? prices?.[t.productId] : undefined;
+  // A price is only ever shown for something that can actually be bought.
+  // Printing "$3.99/mo" beside a button reading "Plus isn't on sale yet" is
+  // still an advertisement for a thing that is not for sale — and `priceUsd` is
+  // the plan's dollar figure, which is not what a naira account would be
+  // charged even once the product does exist.
+  return quoted ? `${quoted}/mo` : null;
+}
+
+/** Can this tier actually be purchased right now? */
+export function isPurchasable(t: Tier, prices?: StorePrices): boolean {
+  if (!t.productId) return false;
+  // Without a store catalogue we cannot claim it is buyable.
+  return !!prices && !!prices[t.productId];
 }

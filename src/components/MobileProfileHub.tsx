@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { apiService, type User } from '@/lib/api';
 import {
-  Coins,
+  Sparkles,
   Crown,
   Gift,
   HelpCircle,
@@ -18,6 +18,7 @@ import {
   UserCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { BASE_GENERATION_COST } from '@/lib/generationTiers';
 import StreakHub from '@/components/StreakHub';
 import NotificationToggle from '@/components/NotificationToggle';
 import { motion } from 'framer-motion';
@@ -158,7 +159,7 @@ export default function MobileProfileHub({
         </div>
         <h2 className="text-xl font-bold text-gray-900 tracking-tight">Your Profile</h2>
         <p className="text-sm text-gray-400 mt-2 max-w-[260px] leading-relaxed">
-          Sign in to track credits, save your favourite looks, and earn streak rewards.
+          Sign in to keep your looks, save your favourites, and earn streak rewards.
         </p>
         <button
           onClick={onShowAuth}
@@ -210,10 +211,14 @@ export default function MobileProfileHub({
 
       {/* ── Stats ────────────────────────────────────────────────────── */}
       <div className="flex gap-3">
+        {/* Was label "Credits" with `credits.toFixed(1)` beside a coin — a
+            decimal balance in the retired currency, on a top-level screen, with
+            the division left to the reader. Same conversion the header chip and
+            the paywall use, so the three can never disagree. */}
         <StatCard
-          label="Credits"
-          value={Number(user.credits || 0).toFixed(1)}
-          icon={Coins}
+          label="Looks left"
+          value={String(Math.floor(Number(user.credits || 0) / BASE_GENERATION_COST))}
+          icon={Sparkles}
         />
         <StatCard
           label="Best Streak"
@@ -232,8 +237,8 @@ export default function MobileProfileHub({
         <SettingsRow
           icon={CreditCard}
           iconColor="text-amber-500"
-          label={user.isPro ? 'Buy more credits' : 'Buy credits'}
-          sublabel="Top up your credit balance"
+          label={user.isPro ? 'Buy more looks' : 'Buy looks'}
+          sublabel="Top up any time — they never expire"
           onClick={onOpenPaywall}
         />
         <Divider />

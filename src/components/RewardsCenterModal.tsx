@@ -13,7 +13,7 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   ChevronRight,
-  Coins,
+  Sparkles,
   Copy,
   Flame,
   Gift,
@@ -27,6 +27,7 @@ import {
   Zap,
 } from 'lucide-react';
 import StreakHub from '@/components/StreakHub';
+import { BASE_GENERATION_COST } from '@/lib/generationTiers';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface RewardsCenterModalProps {
@@ -42,7 +43,7 @@ interface ReferralInfo {
 }
 
 const transactionTitleMap: Record<string, string> = {
-  purchase: 'Credit purchase',
+  purchase: 'Pack purchase',
   spend: 'Generation spend',
   refund: 'Refund issued',
   ad_reward: 'Ad reward',
@@ -51,7 +52,7 @@ const transactionTitleMap: Record<string, string> = {
   review_reward: 'Play Store review reward',
   support_adjustment: 'Support adjustment',
   signup_bonus: 'Signup bonus',
-  guest_credit_transfer: 'Guest credit transfer',
+  guest_credit_transfer: 'Carried over from guest',
 };
 
 function CreditActivityTab({ isAuthenticated, isActive, onAuthClick }: { isAuthenticated: boolean; isActive: boolean; onAuthClick: () => void }) {
@@ -75,7 +76,7 @@ function CreditActivityTab({ isAuthenticated, isActive, onAuthClick }: { isAuthe
         if (result.success && result.data) {
           setLedger(result.data);
         } else {
-          toast.error('Could not load your credit activity.');
+          toast.error('Could not load your activity.');
         }
       } finally {
         if (active) {
@@ -94,7 +95,7 @@ function CreditActivityTab({ isAuthenticated, isActive, onAuthClick }: { isAuthe
   if (!isAuthenticated) {
     return (
       <div className="flex flex-col items-center py-10 px-4 text-center">
-        <p className="text-sm text-gray-500">Sign in to view your credit activity.</p>
+        <p className="text-sm text-gray-500">Sign in to view your activity.</p>
         <button onClick={onAuthClick} className="mt-4 px-6 py-2.5 rounded-full bg-[#1a1a1a] text-white text-sm font-semibold active:scale-[0.97] transition-transform">Sign In</button>
       </div>
     );
@@ -126,7 +127,7 @@ function CreditActivityTab({ isAuthenticated, isActive, onAuthClick }: { isAuthe
       {/* Transactions */}
       {transactions.length === 0 ? (
         <div className="rounded-xl bg-gray-50 py-8 text-center">
-          <p className="text-sm text-gray-400">No credit activity yet.</p>
+          <p className="text-sm text-gray-400">Nothing here yet.</p>
         </div>
       ) : (
         <div className="space-y-1.5">
@@ -336,7 +337,7 @@ function ReferralTab({ isAuthenticated, onAuthClick }: { isAuthenticated: boolea
   if (!isAuthenticated) {
     return (
       <div className="flex flex-col items-center py-10 px-4 text-center">
-        <p className="text-sm text-gray-500">Sign in to unlock referrals and earn credits.</p>
+        <p className="text-sm text-gray-500">Sign in to unlock referrals and earn free looks.</p>
         <button onClick={onAuthClick} className="mt-4 px-6 py-2.5 rounded-full bg-[#1a1a1a] text-white text-sm font-semibold active:scale-[0.97] transition-transform">Sign In</button>
       </div>
     );
@@ -356,9 +357,13 @@ function ReferralTab({ isAuthenticated, onAuthClick }: { isAuthenticated: boolea
           <p className="text-[11px] text-gray-400 font-medium">Friends joined</p>
         </div>
         <div className="rounded-xl bg-gray-50 p-4 text-center">
-          <Coins className="mx-auto mb-1.5 h-5 w-5 text-gray-400" />
-          <p className="text-xl font-bold text-gray-900">{info?.creditsEarned || 0}</p>
-          <p className="text-[11px] text-gray-400 font-medium">Credits earned</p>
+          <Sparkles className="mx-auto mb-1.5 h-5 w-5 text-gray-400" />
+          {/* The API returns CREDITS. Relabelling the tile without dividing would
+              have doubled the number the user thinks they earned. */}
+          <p className="text-xl font-bold text-gray-900">
+            {Math.floor(Number(info?.creditsEarned || 0) / BASE_GENERATION_COST)}
+          </p>
+          <p className="text-[11px] text-gray-400 font-medium">Looks earned</p>
         </div>
       </div>
 
@@ -407,7 +412,7 @@ function AdCreditTab({ isAuthenticated, onAuthClick, onRewardGranted }: { isAuth
       if (result.success && result.completed) {
         await apiService.grantFreeCredit();
         await onRewardGranted();
-        toast.success('0.5 credit added.');
+        toast.success('Counted — that is a bit closer to a free look.');
       } else {
         toast.info('Ad closed before completion.');
       }
@@ -421,12 +426,21 @@ function AdCreditTab({ isAuthenticated, onAuthClick, onRewardGranted }: { isAuth
       <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-4">
         <Zap className="w-6 h-6 text-gray-400" />
       </div>
+      {/* This block used to read "receive 0.5 credit instantly" beside a
+          "+0.5 credit" coin chip. The backend grants REWARD_AD_CONFIG
+          .creditsPerReward = 0.25, capped at two a day — so the screen promised
+          twice what it paid, in a unit nobody buys in. Stated in looks and at
+          the real rate: eight ads to a look, two a day. If that rate is too
+          mean to be worth offering, the fix is the rate (plan §7.2 wants one
+          look a day), not the sentence. */}
       <h3 className="text-base font-semibold text-gray-900">Watch & Earn</h3>
-      <p className="text-[13px] text-gray-400 mt-1 max-w-[220px]">Watch a short ad to receive 0.5 credit instantly.</p>
+      <p className="text-[13px] text-gray-400 mt-1 max-w-[240px]">
+        Every ad puts a little towards a free look. Eight of them make one.
+      </p>
 
       <div className="mt-5 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-50">
-        <Coins className="w-4 h-4 text-gray-400" />
-        <span className="text-sm font-bold text-gray-900">+0.5 credit</span>
+        <Tv className="w-4 h-4 text-gray-400" />
+        <span className="text-sm font-bold text-gray-900">Two a day</span>
       </div>
 
       <button
@@ -495,7 +509,7 @@ export default function RewardsCenterModal({ isOpen, onClose, onOpenPaywall }: R
               <div className="flex items-center justify-between px-5 pb-3">
                 <div>
                   <h2 className="text-lg font-bold text-gray-900 tracking-tight">Rewards</h2>
-                  <p className="text-[12px] text-gray-400 mt-0.5">Earn free credits &amp; track activity</p>
+                  <p className="text-[12px] text-gray-400 mt-0.5">Earn free looks &amp; track activity</p>
                 </div>
                 <button
                   onClick={onClose}
@@ -564,7 +578,7 @@ export default function RewardsCenterModal({ isOpen, onClose, onOpenPaywall }: R
                     >
                       <div className="flex items-center gap-2.5">
                         <ShoppingCart className="w-4 h-4 text-gray-400" />
-                        <span className="text-[13px] font-medium text-gray-600">Buy credit packs</span>
+                        <span className="text-[13px] font-medium text-gray-600">Buy more looks</span>
                       </div>
                       <ChevronRight className="w-4 h-4 text-gray-300" />
                     </button>

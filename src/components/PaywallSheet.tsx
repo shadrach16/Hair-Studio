@@ -17,7 +17,15 @@
 import React, { useState } from 'react';
 import { IonIcon } from '@ionic/react';
 import { checkmark } from 'ionicons/icons';
-import { TIERS, DEFAULT_TIER, priceLabel, type TierId, type Tier } from '@/lib/tiers';
+import {
+  TIERS,
+  DEFAULT_TIER,
+  priceLabel,
+  isPurchasable,
+  type TierId,
+  type Tier,
+  type StorePrices,
+} from '@/lib/tiers';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { cn } from '@/lib/utils';
 
@@ -32,6 +40,20 @@ interface PaywallSheetProps {
   onTopUp?: () => void;
   /** Contextual reason the sheet opened, e.g. hitting the daily cap. */
   reason?: string;
+  /**
+   * What the store is actually selling, productId -> formatted price.
+   *
+   * Walk 4's blocker: the CTA read "Get Plus — $3.99/mo" and answered a tap with
+   * `Subscription "plus_monthly_399" not found.` The old guard was
+   * `!chosen.productId` — whether we had WRITTEN DOWN an id, not whether the
+   * store had one to sell. Filling in `productId` in tiers.ts silently turned a
+   * dead button live. This is the same question asked of the store instead, so
+   * the day the products are created the CTA goes live on its own and it can
+   * never again advertise something Play will refuse.
+   *
+   * Undefined means "no store here" (web), where the plan price still shows.
+   */
+  storePrices?: StorePrices;
 }
 
 /**
@@ -46,15 +68,18 @@ export const TierChooser: React.FC<Omit<PaywallSheetProps, 'isOpen' | 'onClose'>
   onSubscribe,
   onTopUp,
   reason,
+  storePrices,
 }) => {
   const [selected, setSelected] = useState<TierId>(DEFAULT_TIER);
   const [busy, setBusy] = useState(false);
 
   const chosen = TIERS.find((t) => t.id === selected)!;
   const isCurrent = chosen.id === currentTier;
+  const canBuy = isPurchasable(chosen, storePrices);
+  const chosenPrice = priceLabel(chosen, storePrices);
 
   const handleSubscribe = async () => {
-    if (!chosen.productId || !onSubscribe || isCurrent) return;
+    if (!canBuy || !chosen.productId || !onSubscribe || isCurrent) return;
     setBusy(true);
     try {
       await onSubscribe(chosen.productId);
@@ -81,6 +106,7 @@ export const TierChooser: React.FC<Omit<PaywallSheetProps, 'isOpen' | 'onClose'>
               tier={t}
               selected={t.id === selected}
               isCurrent={t.id === currentTier}
+              price={priceLabel(t, storePrices)}
               onSelect={() => setSelected(t.id)}
             />
           ))}
@@ -89,10 +115,10 @@ export const TierChooser: React.FC<Omit<PaywallSheetProps, 'isOpen' | 'onClose'>
         {/* One primary action, reflecting the selected card. */}
         <button
           onClick={handleSubscribe}
-          disabled={busy || isCurrent || !chosen.productId}
+          disabled={busy || isCurrent || !canBuy}
           className={cn(
             'mt-5 flex h-[54px] w-full items-center justify-center gap-2 rounded-full text-[15px] font-semibold transition-opacity',
-            isCurrent || !chosen.productId
+            isCurrent || !canBuy
               ? 'bg-surface text-ink-3 ring-1 ring-hairline'
               : 'bg-brass text-white active:scale-[0.99]',
             busy && 'opacity-60'
@@ -103,10 +129,20 @@ export const TierChooser: React.FC<Omit<PaywallSheetProps, 'isOpen' | 'onClose'>
           ) : null}
           {isCurrent
             ? 'Your current plan'
-            : !chosen.productId
-            ? 'Coming soon'
-            : `Get ${chosen.label} — ${priceLabel(chosen)}`}
+            : !canBuy
+            ? `${chosen.label} isn't on sale yet`
+            : `Get ${chosen.label} — ${chosenPrice}`}
         </button>
+
+        {/* Said plainly rather than left to a greyed-out button, because "a dead
+            primary button with no explanation is a serious finding" and the
+            person reading it is trying to give us money. */}
+        {!isCurrent && !canBuy && (
+          <p className="mt-2.5 text-center text-[12px] leading-relaxed text-ink-2">
+            Plans are not open yet. Top up below and you can style today — your
+            looks never expire.
+          </p>
+        )}
 
         <p className="mt-2.5 text-center text-[11px] leading-relaxed text-ink-3">
           Cancel any time in Google Play. Your existing credits stay in your
@@ -137,8 +173,10 @@ const TierCard: React.FC<{
   tier: Tier;
   selected: boolean;
   isCurrent: boolean;
+  /** Null when the store is not selling this tier — then no price is shown. */
+  price: string | null;
   onSelect: () => void;
-}> = ({ tier: t, selected, isCurrent, onSelect }) => (
+}> = ({ tier: t, selected, isCurrent, price, onSelect }) => (
   <button
     onClick={onSelect}
     className={cn(
@@ -155,8 +193,11 @@ const TierCard: React.FC<{
           </span>
         )}
       </div>
-      {/* Price is a trailing chip, not the headline. */}
-      <span className="text-[13px] font-medium text-ink-2">{priceLabel(t)}</span>
+      {/* Price is a trailing chip, not the headline — and absent entirely when
+          the store has nothing to sell, rather than a number we invented. */}
+      <span className="text-[13px] font-medium text-ink-2">
+        {price ?? 'Soon'}
+      </span>
     </div>
 
     {/* The number that actually matters. */}

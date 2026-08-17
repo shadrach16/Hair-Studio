@@ -4,19 +4,24 @@ import { apiService } from '@/lib/api';
 import { usePayment } from '../hooks/usePayment'; 
 import { Capacitor } from '@capacitor/core';
 import { PurchasesPackage } from '@revenuecat/purchases-capacitor';
-import { Zap, Loader2, RotateCcw, Coins } from 'lucide-react'; 
-import type { CreditPack, SubscriptionPlan } from '@/lib/pricingSystem';
+import { Loader2, RotateCcw, Sparkles } from 'lucide-react';
+import { IonIcon } from '@ionic/react';
+import { sparklesOutline } from 'ionicons/icons';
+import type { CreditPack } from '@/lib/pricingSystem';
+import { BASE_GENERATION_COST } from '@/lib/generationTiers';
 
-// Tier visual config
-const TIER_STYLES: Record<string, { emoji: string; accent: string; bg: string }> = {
-  credits3:    { emoji: '🎯', accent: 'text-gray-600', bg: 'bg-gray-50' },
-  credits10:   { emoji: '⚡', accent: 'text-blue-600', bg: 'bg-blue-50' },
-  credits25:   { emoji: '🔥', accent: 'text-orange-600', bg: 'bg-orange-50' },
-  credits100:  { emoji: '💎', accent: 'text-violet-600', bg: 'bg-violet-50' },
-  credits250:  { emoji: '👑', accent: 'text-amber-600', bg: 'bg-amber-50' },
-  unlimited:   { emoji: '∞', accent: 'text-emerald-600', bg: 'bg-emerald-50' },
-};
-const DEFAULT_TIER = { emoji: '🪙', accent: 'text-gray-600', bg: 'bg-gray-50' };
+/**
+ * How many looks a pack actually buys, floored.
+ *
+ * The backend catalogue still prices packs in credits ("3 credits", "100
+ * credits") and a look costs BASE_GENERATION_COST of them, so the sheet was
+ * asking the buyer to do the division — the arithmetic §7.4 exists to abolish,
+ * on the one screen that has ever taken money. Floor rather than round: 3
+ * credits is one and a half looks, and a pack must never promise a look it
+ * cannot deliver. The remainder is not lost, it just is not advertised.
+ */
+const looksIn = (credits: number): number =>
+  Math.max(0, Math.floor(Number(credits || 0) / BASE_GENERATION_COST));
 
 // Google Play returns subscription product identifiers as "subscriptionId:basePlanId"
 // (e.g. "plus_annual:plus-annual-1y"). Match on the subscriptionId part so the catalog
@@ -71,6 +76,25 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
         })
         .filter((item): item is { catalogPack: CreditPack; rcPackage: PurchasesPackage } => item !== null);
 
+    // "Best Value" came from the catalogue's `popular` flag, which is a marketing
+    // choice made before these prices existed: it sat on the 100-credit pack
+    // while the 250 was ₦23/look cheaper. A badge that says "best value" and is
+    // not the best value is a false claim on a purchase screen, so it is worked
+    // out from the prices actually being charged — in the local currency, at the
+    // moment of display. Ties and missing prices simply get no badge.
+    const bestValueId = (() => {
+        let bestId: string | null = null;
+        let bestRate = Infinity;
+        for (const { catalogPack, rcPackage } of paywallItems) {
+            const looks = looksIn(catalogPack.credits);
+            const micros = Number(rcPackage.product.priceMicros ?? rcPackage.product.price);
+            if (!looks || !Number.isFinite(micros) || micros <= 0) continue;
+            const rate = micros / looks;
+            if (rate < bestRate) { bestRate = rate; bestId = catalogPack.id; }
+        }
+        return bestId;
+    })();
+
     // Build subscription items matched to RevenueCat packages
 
     if (!storeReady || isCatalogLoading) {
@@ -106,9 +130,9 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
                     <div className="space-y-2">
                         {paywallItems.length > 0 ? (
                             paywallItems.map((item) => {
-                                const tier = TIER_STYLES[item.catalogPack.id] || DEFAULT_TIER;
-                                const isPopular = item.catalogPack.popular;
+                                const isPopular = item.catalogPack.id === bestValueId;
                                 const isProcessing = isProcessingProductId === item.rcPackage.product.identifier;
+                                const looks = looksIn(item.catalogPack.credits);
 
                                 return (
                                     <button
@@ -131,18 +155,26 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
                                             </span>
                                         )}
 
-                                        {/* Emoji icon */}
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 ${isPopular ? 'bg-white/10' : tier.bg}`}>
-                                            {tier.emoji}
+                                        {/* One ionicon, not a different emoji per pack (plan §1.3
+                                            kills emoji-as-icon; five of them turned the purchase
+                                            list into a sticker sheet). */}
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isPopular ? 'bg-white/10' : 'bg-gray-100'}`}>
+                                            <IonIcon
+                                                icon={sparklesOutline}
+                                                style={{ fontSize: 18 }}
+                                                className={isPopular ? 'text-amber-400' : 'text-gray-400'}
+                                            />
                                         </div>
 
-                                        {/* Info */}
+                                        {/* Info — the LOOKS lead, because that is what is being
+                                            bought. The catalogue's own displayLabel ("100 credits")
+                                            is deliberately not rendered. */}
                                         <div className="flex-1 min-w-0">
                                             <p className={`text-[14px] font-semibold leading-tight ${isPopular ? 'text-white' : 'text-gray-900'}`}>
-                                                {item.catalogPack.name}
+                                                {looks} {looks === 1 ? 'look' : 'looks'}
                                             </p>
                                             <p className={`text-[12px] mt-0.5 leading-snug ${isPopular ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                {item.catalogPack.displayLabel}
+                                                {item.catalogPack.name}
                                             </p>
                                         </div>
 
@@ -167,9 +199,9 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
                         ) : (
                             <div className="py-8 text-center">
                                 <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                                    <Coins className="w-5 h-5 text-gray-300" />
+                                    <Sparkles className="w-5 h-5 text-gray-300" />
                                 </div>
-                                <p className="text-[13px] text-gray-400">No credit packs available at this time.</p>
+                                <p className="text-[13px] text-gray-400">Nothing to buy here just yet.</p>
                             </div>
                         )}
                     </div>
@@ -214,10 +246,10 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
                     <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-gray-500 transition-colors">Terms</a>
                     <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-gray-500 transition-colors">Privacy</a>
                 </div>
-                {/* Temporary debug info */}
-                <p className="text-[8px] text-gray-300 text-center px-2 break-all">
-                    RC: {rcDebugInfo} | catalog: {catalog.subscriptions.length}s/{catalog.creditPacks.length}c | pkgs: {packages.length}
-                </p>
+                {/* The "temporary" debug line lived here and shipped: it printed
+                    internal product ids, the offering name and package counts in
+                    8px grey under a purchase list. It is still available in
+                    logcat, where it belongs. */}
             </div>
         </div>
     );

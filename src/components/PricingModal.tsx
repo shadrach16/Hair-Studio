@@ -8,6 +8,7 @@ import { Coins, X, ShieldCheck, Gift, ChevronRight } from 'lucide-react';
 import AuthModal from './AuthModal';
 import { cn } from '@/lib/utils';
 import { TierChooser } from '@/components/PaywallSheet';
+import { TIERS, productMatches } from '@/lib/tiers';
 import { BASE_GENERATION_COST } from '@/lib/generationTiers';
 import { usePayment } from '@/hooks/usePayment';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -32,7 +33,22 @@ interface PricingModalProps {
 export default function PricingModal({ isOpen, onClose, onOpenRewards, context }: PricingModalProps) {
   const { user, isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const { buySubscription } = usePayment();
+  const { buySubscription, packages } = usePayment();
+
+  // What the store will really charge, taken from the live offering rather than
+  // from a literal in tiers.ts (Walk 4: the sheet quoted "$3.99/mo" to a handset
+  // billing in naira, and offered a product Play had never heard of). On web
+  // there is no store, so this stays undefined and the plan price shows.
+  const storePrices = React.useMemo(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+    const prices: Record<string, string> = {};
+    for (const t of TIERS) {
+      if (!t.productId) continue;
+      const pkg = packages.find((p) => productMatches(p.product.identifier, t.productId));
+      if (pkg) prices[t.productId] = pkg.product.priceString;
+    }
+    return prices;
+  }, [packages]);
 
   // Credits are still the live currency until tier enforcement is switched on.
   // The UI stops SAYING "credits" — it reports what the balance buys, at the
@@ -127,6 +143,7 @@ export default function PricingModal({ isOpen, onClose, onOpenRewards, context }
                     lead. */}
                 <TierChooser
                   currentTier={currentTier}
+                  storePrices={storePrices}
                   onSubscribe={async (productId) => {
                     await buySubscription(productId);
                   }}
@@ -160,15 +177,21 @@ export default function PricingModal({ isOpen, onClose, onOpenRewards, context }
                   >
                     <div className="flex items-center gap-2">
                       <Gift className="w-4 h-4 text-gray-500" />
-                      <span className="text-[13px] font-medium text-gray-600">Earn free credits</span>
+                      <span className="text-[13px] font-medium text-gray-600">Earn free looks</span>
                     </div>
                     <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
                   </button>
                 )}
+                {/* "30-day guarantee" was here and nothing in the app or the
+                    backend implemented it — purchases go through Google Play,
+                    whose refund window is Google's and is not thirty days. The
+                    app's own copy rules forbid exactly this (aiNudgeService:
+                    "no fake discounts, no guarantees"). What is left is true:
+                    Play handles the payment, and balances do not expire. */}
                 <div className="flex items-center justify-center gap-1.5">
                   <ShieldCheck className="w-3 h-3 text-emerald-500 flex-shrink-0" />
                   <p className="text-[10px] text-gray-300">
-                    Secure payment · 30-day guarantee · Credits never expire
+                    Paid through Google Play · your looks never expire
                   </p>
                 </div>
               </div>
@@ -182,7 +205,7 @@ export default function PricingModal({ isOpen, onClose, onOpenRewards, context }
         onClose={() => setShowAuthModal(false)}
         onSuccess={handleAuthSuccess}
         title="Sign in to Continue"
-        description="Create your account to get more credits and access premium features."
+        description="Create your account to keep your looks and pick up where you left off."
         showProBenefits={false}
       />
     </>

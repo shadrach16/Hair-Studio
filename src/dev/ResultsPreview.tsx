@@ -58,7 +58,14 @@ export const ConfirmPreview: React.FC = () => {
   );
 };
 
-/** ?preview=paywall[&tier=plus] — the M5 tier sheet. */
+/**
+ * ?preview=paywall[&tier=plus][&capped][&onsale] — the M5 tier sheet.
+ *
+ * `&onsale` fakes a live store offering. Without it the sheet renders the state
+ * every real user sees today — no subscription products exist, so the CTA says
+ * so — which means the buyable state is otherwise unreachable in a browser and
+ * Walk 4 could only judge half of it.
+ */
 export const PaywallPreview: React.FC = () => (
   <PaywallSheet
     isOpen
@@ -67,6 +74,11 @@ export const PaywallPreview: React.FC = () => (
     onSubscribe={async () => {}}
     onTopUp={() => {}}
     reason={PREVIEW_PARAMS.has('capped') ? "You've used today's looks." : undefined}
+    storePrices={
+      PREVIEW_PARAMS.has('onsale')
+        ? { plus_monthly_399: '₦6,500.00', studio_monthly_999: '₦16,000.00' }
+        : undefined
+    }
   />
 );
 

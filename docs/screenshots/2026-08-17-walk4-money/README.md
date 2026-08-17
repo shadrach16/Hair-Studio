@@ -250,6 +250,70 @@ when authenticated, and the run stayed signed out); the low-balance nudge → pa
 hardware; the paywall opened while offline; tapping the primary button twice fast against a
 product that exists.
 
+## Fixes applied after the walk
+
+Verified on the handset against a rebuilt APK unless noted.
+
+- **The CTA now asks the store, not the source file.** `TierChooser` takes a
+  `storePrices` map built from the live RevenueCat offering. A tier is purchasable
+  only if the store is actually selling its `productId`; otherwise the button is quiet
+  rather than brass, reads "Plus isn't on sale yet", and a line underneath says
+  "Plans are not open yet. Top up below and you can style today — your looks never
+  expire." The old guard asked whether we had *written down* an id, which is why
+  filling in `tiers.ts` turned a dead button live without anyone touching the paywall.
+  The day the products exist, this goes live on its own. `FIX4-paywall-tiers-device.png`,
+  and both states in the browser: `FIX1-paywall-not-on-sale.png` /
+  `FIX2-paywall-on-sale.png` via the new `?preview=paywall&onsale`.
+- **No invented prices.** `priceLabel` returns a price only when the store quoted one,
+  so the card shows "Soon" instead of "$3.99/mo", and when the product does exist the
+  card and the CTA both print the store's own string in the user's currency. The
+  fixture proves the naira case end to end.
+- **Packs are sold in looks.** Each row now leads with "1 look / 5 looks / 12 looks /
+  50 looks / 125 looks" and demotes the pack name beneath it; the catalogue's
+  "100 credits" label is no longer rendered. Floored deliberately — 3 credits is one
+  and a half looks and a pack must never promise a look it cannot deliver.
+  `FIX5-paywall-packs-device.png`.
+- **One ionicon replaces five emoji**, and the empty state's coin became a sparkle.
+- **"Best Value" is computed, not declared.** It was the catalogue's `popular` flag,
+  parked on the 100-credit pack while the 250 was cheaper per look. It is now derived
+  from price-per-look at display time in the local currency, and on this handset it
+  moved to the 125-look pack — ₦148/look against the old badge's ₦171.
+- **The debug line is gone** from under the purchase list.
+- **Restore stops lying to signed-out customers.** A failed grant call is now
+  distinguished from an empty account: "Sign in to restore your purchases — they are
+  held against your account, so we need to know who you are."
+  `FIX6-restore-signed-out.png`. A successful restore reports in looks rather than
+  credits.
+- **"30-day guarantee" removed.** The footer now reads "Paid through Google Play ·
+  your looks never expire", both of which are true.
+- **Purchase errors stopped quoting product ids.** "That plan isn't available to buy
+  yet" / "That pack isn't available right now"; the id goes to `console.warn`.
+- **The ad reward tells the truth.** It promised "0.5 credit" while
+  `REWARD_AD_CONFIG.creditsPerReward` grants **0.25** — twice what it paid. Now:
+  "Every ad puts a little towards a free look. Eight of them make one." with a "Two a
+  day" chip and no coin. `FIX3-rewards-looks.png`. **The rate itself is left for the
+  owner:** eight ads per look at two ads a day is four days of watching for one try-on,
+  where plan §7.2 wants one look a day. That is a money decision, not a copy one.
+- **The rest of the rewards sheet and the Profile screen** swept to looks — including
+  the referral "Looks earned" tile, which needed the value divided as well as the label
+  changed, or it would have doubled the number the user thought they had earned.
+- **`UNIT_COST.pro` 4 → 3** in `backend/services/entitlements.js`, so the meter matches
+  the 3 looks the confirm screen quotes and the 6 credits the wallet takes. Comment
+  records that plan §7.1 wants 4, and that the honest way to get there is to raise the
+  quoted price, not to meter more than was quoted. **Not deployed** — the backend is
+  read-only for this walk.
+
+### Left for the owner, because they are not code
+
+- **"Novies Pack"** is a product name in the backend catalogue and in Play Console.
+- **The 3-credit pack strands a credit.** At 2 credits a look it buys one look and
+  leaves one credit that can never be spent alone. Either price it at 2 or 4 credits,
+  or accept that its honest label is "1 look".
+- **The per-credit ladder still inverts** (₦108/credit at 3, ₦153/credit at 10). In
+  looks the ladder now reads monotonically because of the floor, so a buyer is no
+  longer misled — but anyone counting credits still finds the second rung the worst
+  value in the list.
+
 ## Verdict
 
 **Which paths took money end to end: none, and not for the reason I expected.** The only
