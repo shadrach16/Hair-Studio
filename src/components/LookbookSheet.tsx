@@ -42,6 +42,9 @@ export const LookbookSheet: React.FC<LookbookSheetProps> = ({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  // True when the backend fell back to spelling-tolerant matching, so the sheet
+  // can say so rather than presenting approximate results as exact.
+  const [fuzzy, setFuzzy] = useState(false);
   const sentinel = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -68,6 +71,7 @@ export const LookbookSheet: React.FC<LookbookSheetProps> = ({
         if (cancelled) return;
         const list = res?.data?.hairstyles || res?.data || [];
         setItems(list);
+        setFuzzy(!!res?.fuzzy);
         setHasMore(list.length >= PAGE_SIZE);
       })
       .finally(() => !cancelled && setLoading(false));
@@ -190,7 +194,7 @@ export const LookbookSheet: React.FC<LookbookSheetProps> = ({
                 className={cn(
                   'h-9 whitespace-nowrap rounded-full px-4 text-label transition-colors',
                   active
-                    ? 'bg-brass text-white'
+                    ? 'bg-ink text-surface'
                     : 'bg-surface text-ink-2 ring-1 ring-hairline active:bg-surface-2'
                 )}
               >
@@ -204,9 +208,11 @@ export const LookbookSheet: React.FC<LookbookSheetProps> = ({
       {items.length === 0 && !loading ? (
         <EmptyState
           icon={<IonIcon icon={imagesOutline} style={{ fontSize: 24 }} />}
-          title="No styles match"
+          title={query ? `No styles like "${query}"` : 'No styles match'}
           description={
-            hasFilters
+            query
+              ? 'Check the spelling, or try a shorter word like "braids" or "fade".'
+              : hasFilters
               ? 'Try a different category, or clear the filters to see everything.'
               : 'Nothing to show here yet.'
           }
@@ -216,13 +222,18 @@ export const LookbookSheet: React.FC<LookbookSheetProps> = ({
                 onClick={clearAll}
                 className="rounded-full bg-ink px-5 py-2.5 text-label text-surface"
               >
-                Clear filters
+                {query ? 'Clear search' : 'Clear filters'}
               </button>
             ) : undefined
           }
         />
       ) : (
         <>
+          {fuzzy && query && (
+            <p className="mb-2 text-caption text-ink-3">
+              No exact match for “{query}”. Showing the closest styles.
+            </p>
+          )}
           {grid}
           {/* Sentinel drives the next page */}
           <div ref={sentinel} className="h-10" />

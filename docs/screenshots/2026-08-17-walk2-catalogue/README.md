@@ -6,22 +6,22 @@ Device half not required for this walk: everything here is web-bundle behaviour.
 
 ## Findings, ranked
 
-### 1. SERIOUS — the feed loses your place when you come back from a style
+### 1. WITHDRAWN — the feed does NOT lose your place
 
-Scrolled four screens into the feed (scrollTop 3200), opened a style, closed it with the
-sheet's own control, and landed at scrollTop 991. Roughly two thirds of the scroll is thrown
-away. Capture `W2-7-after-close.png`.
+Filed as serious: scrolled to 3200, opened a style, came back at 991. It is a harness
+artifact, not app behaviour. Playwright's `click()` scrolls an offscreen target into view
+before clicking it, and the card being clicked (`nth(8)`) sits far above the fold at that
+scroll position — so the test itself moved the feed to 991 and then measured 991.
 
-Walk 2's own rule calls this serious rather than a paper cut, and it is right to: browsing is
-this app's core loop, the whole point of a masonry feed is that you dig, and a reader who is
-punished for opening anything learns to stop opening things. It is also the single most
-likely reason someone gives up before reaching the photo screen.
+Retested the way a thumb actually works, by locating a card fully inside the viewport and
+dispatching a tap at its coordinates: before 3200, during 3200, after 3200. Position kept.
 
-Not diagnosed here (walks find, they do not fix), but the shape suggests the feed remounts
-and drops back to its first page, so the container shortens and the browser clamps the
-scroll position to the new height.
+Recorded rather than deleted because the wrong version cost real work: a scroll pin-and-
+restore was written against Ionic's modal, iterated three times, and reverted once the cause
+was understood. The lesson is specific and reusable — when a walk measures interaction, click
+by coordinate inside the viewport, never by locator, or the harness will scroll for you.
 
-### 2. SERIOUS — a misspelled style name returns nothing
+### 2. FIXED — a misspelled style name returned nothing
 
 `bantoo knots` returns no results at all. Capture `W2-8-misspelling.png`. Bantu knots are in
 the catalogue and are one of the styles this audience searches for by name.
@@ -31,7 +31,7 @@ style is spelled, which is most people for most styles, gets the same screen as 
 searching for something that does not exist. Real queries work well (below), so this is
 specifically the near-miss case.
 
-### 3. PAPER CUT — the no-results state answers a question the user did not ask
+### 3. FIXED — the no-results state answered a question the user did not ask
 
 Searching `perm rods` shows "No styles match / Try a different category, or clear the filters
 to see everything" with a **Clear filters** button. Capture `W2-9-no-results.png`.
@@ -41,7 +41,7 @@ user typed a query, and the copy talks about categories and filters. "Clear filt
 obviously clear the text they just typed, which is the thing standing between them and
 results. The recovery offered does not match the action taken.
 
-### 4. LOOK — two browse surfaces, two different active-chip styles
+### 4. FIXED — two browse surfaces, two different active-chip styles
 
 The feed marks the selected category with a dark fill; the search sheet marks it with a brass
 fill. Compare `W2-2-category.png` with `W2-9-no-results.png`. Same control, same job, two
@@ -74,6 +74,24 @@ than one that shows them.
   clicking chips in sequence. Re-tested in isolation, both render correctly and immediately:
   Afros 22, Straight 21, no skeletons left on screen, matching the API. Nothing was wrong.
 
+## Fixes applied after the walk
+
+- **Fuzzy search.** The catalogue is 289 styles, small enough to scan in memory, so when an
+  exact search returns nothing the backend now falls back to token-level edit distance
+  against the name: 1 edit for short words, 2 for longer, and every query token must match so
+  "fade" cannot drag in half the catalogue. Only on page one, only on an empty result, so the
+  normal path pays nothing. `bantoo knots` now returns **Elegant Bantu Knots**; `perm rods`
+  still correctly returns nothing, because the catalogue genuinely has none. The response
+  carries a `fuzzy` flag and the sheet says "No exact match for X. Showing the closest
+  styles" rather than passing approximate results off as exact. Capture `FIX-fuzzy.png`.
+  The fallback drops only the search clause, not the whole `$and`, so a fuzzy match cannot
+  escape the gender filter and return men's styles to someone who asked for women's.
+- **Empty state.** Now answers what the user did: "No styles like *perm rods*", "Check the
+  spelling, or try a shorter word", and the button reads **Clear search**. Capture
+  `FIX-empty-state.png`.
+- **Chips.** The search sheet's active chip now uses the feed's dark fill. Brass is reserved
+  for the one primary action per screen, and a selected filter is not it.
+
 ## Verdict
 
 A person who knows what they want can find it here, and browsing genuinely reads as a
@@ -81,11 +99,10 @@ lookbook rather than a database: the masonry is deep, the categories are honest,
 the words this audience actually uses returns the right styles. On the two questions Walk 2
 asks, it passes the second one well.
 
-Where it falls down is the dig. The feed throws away your scroll position every time you look
-at something, which punishes exactly the behaviour a browse app wants, and a single misspelled
-letter drops you into a dead end that reads identically to "we do not have this". Those two
-findings are the same story from different angles: the app is good at showing you styles and
-bad at letting you come back from one.
+Where it fell down was the near miss: a single misspelled letter dropped you into a dead end
+that read identically to "we do not stock this", which for a catalogue of styles most people
+cannot spell is a common and expensive way to lose someone. That is now spelling-tolerant, and
+honest about it when it guesses.
 
-Three roughest edges: losing scroll position, exact-match-only search, and a no-results screen
-that offers to clear filters when the problem is the query.
+The roughest edge was exact-match-only search, and it is fixed. Scroll retention, the finding
+that looked worst, turned out to be the harness rather than the app.
