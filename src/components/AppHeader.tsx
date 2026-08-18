@@ -10,7 +10,10 @@
 
 import React, { useState } from 'react';
 import { IonIcon } from '@ionic/react';
-import { searchOutline, heartOutline, personOutline, giftOutline, logOutOutline } from 'ionicons/icons';
+import {
+  searchOutline, heartOutline, personOutline, giftOutline, logOutOutline,
+  chevronForwardOutline, sparklesOutline,
+} from 'ionicons/icons';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { LooksChip } from '@/components/ui/LooksChip';
 import { cn } from '@/lib/utils';
@@ -26,22 +29,43 @@ interface AppHeaderProps {
   onSignOut?: () => void;
 }
 
+/**
+ * A menu row.
+ *
+ * Was a 21px ionicon and a label on a bare button — a settings list. Pinterest's
+ * own account menu leads with a soft round token and a chevron, which reads as
+ * navigation rather than as preferences, and gives the row a shape at a glance.
+ */
 const MenuRow: React.FC<{
   icon: string;
   label: string;
+  sublabel?: string;
   onClick: () => void;
   danger?: boolean;
-}> = ({ icon, label, onClick, danger }) => (
+}> = ({ icon, label, sublabel, onClick, danger }) => (
   <button
     onClick={onClick}
-    className="flex w-full items-center gap-3 rounded-xl px-2 py-3.5 text-left transition-colors active:bg-surface"
+    className="flex w-full items-center gap-3.5 rounded-2xl px-2 py-2.5 text-left transition-colors active:bg-surface"
   >
-    <IonIcon
-      icon={icon}
-      style={{ fontSize: 21 }}
-      className={danger ? 'text-danger' : 'text-ink-2'}
-    />
-    <span className={cn('text-body', danger ? 'text-danger' : 'text-ink')}>{label}</span>
+    <span
+      className={cn(
+        'grid h-11 w-11 shrink-0 place-items-center rounded-full',
+        danger ? 'bg-danger/10' : 'bg-surface'
+      )}
+    >
+      <IonIcon
+        icon={icon}
+        style={{ fontSize: 19 }}
+        className={danger ? 'text-danger' : 'text-brass'}
+      />
+    </span>
+    <span className="min-w-0 flex-1">
+      <span className={cn('block text-[15px]', danger ? 'text-danger' : 'text-ink')}>{label}</span>
+      {sublabel && <span className="mt-0.5 block truncate text-[12px] text-ink-3">{sublabel}</span>}
+    </span>
+    {!danger && (
+      <IonIcon icon={chevronForwardOutline} style={{ fontSize: 16 }} className="shrink-0 text-ink-3" />
+    )}
   </button>
 );
 
@@ -105,50 +129,77 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       <BottomSheet
         isOpen={menuOpen}
         onClose={() => setMenuOpen(false)}
-        breakpoints={[0, 0.5]}
-        initialBreakpoint={0.5}
-        title="Hair Studio"
-        subtitle={isAuthenticated ? user?.email : 'Not signed in'}
+        breakpoints={[0, 0.62]}
+        initialBreakpoint={0.62}
       >
-        <div className="space-y-0.5">
-          <MenuRow
-            icon={heartOutline}
-            label="Saved looks"
-            onClick={() => {
-              setMenuOpen(false);
-              onNavigate?.('looks');
-            }}
-          />
-          <MenuRow
-            icon={personOutline}
-            label="Profile"
-            onClick={() => {
-              setMenuOpen(false);
-              onNavigate?.('profile');
-            }}
-          />
-          <MenuRow
-            icon={giftOutline}
-            label="Free looks & referrals"
-            onClick={() => {
-              setMenuOpen(false);
-              onOpenRewards?.();
-            }}
-          />
-          {isAuthenticated && onSignOut && (
-            <>
-              <div className="my-2 h-px bg-hairline" />
-              <MenuRow
-                icon={logOutOutline}
-                label="Sign out"
-                danger
-                onClick={() => {
-                  setMenuOpen(false);
-                  onSignOut();
-                }}
-              />
-            </>
+        {/* The sheet used to open with a bold sans "Hair Studio" and an email
+            underneath, then four flat rows — a settings screen wearing a sheet.
+            It now opens on the brand's own lettering, with the identity below it,
+            and the rows read as places to go. */}
+        <div className="pb-2">
+          <div className="flex flex-col items-center pb-5">
+            <img src="/brand/wordmark-light.png" alt="Hair Studio" className="h-[30px] w-auto" />
+            <p className="mt-2 text-[12px] text-ink-3">
+              {isAuthenticated ? user?.email : 'Browsing as a guest'}
+            </p>
+          </div>
+
+          {!isAuthenticated && (
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                onShowAuth?.();
+              }}
+              className="mb-4 flex h-[50px] w-full items-center justify-center gap-2 rounded-full bg-brass text-[15px] font-semibold text-white active:scale-[0.99]"
+            >
+              <IonIcon icon={sparklesOutline} style={{ fontSize: 17 }} />
+              Save your looks
+            </button>
           )}
+
+          <div className="space-y-0.5">
+            <MenuRow
+              icon={heartOutline}
+              label="Saved looks"
+              sublabel="Everything you kept"
+              onClick={() => {
+                setMenuOpen(false);
+                onNavigate?.('looks');
+              }}
+            />
+            <MenuRow
+              icon={personOutline}
+              label="Profile"
+              sublabel="Your plan and settings"
+              onClick={() => {
+                setMenuOpen(false);
+                onNavigate?.('profile');
+              }}
+            />
+            <MenuRow
+              icon={giftOutline}
+              label="Invite friends"
+              sublabel="You both get free looks"
+              onClick={() => {
+                setMenuOpen(false);
+                onOpenRewards?.();
+              }}
+            />
+            {isAuthenticated && onSignOut && (
+              <>
+                <div className="my-2 h-px bg-hairline" />
+                <MenuRow
+                  icon={logOutOutline}
+                  label="Sign out"
+                  danger
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onSignOut();
+                  }}
+                />
+              </>
+            )}
+          </div>
         </div>
       </BottomSheet>
     </>

@@ -100,8 +100,8 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
     if (!storeReady || isCatalogLoading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-6 h-6 mr-2.5 animate-spin text-gray-300" />
-                <p className="text-[13px] text-gray-400">Loading payment options...</p>
+                <Loader2 className="mr-2.5 h-5 w-5 animate-spin text-ink-3" />
+                <p className="text-[13px] text-ink-3">Loading…</p>
             </div>
         );
     }
@@ -110,12 +110,12 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
         <div className="flex flex-col gap-3">
             {/* Contextual banner when arriving via a deep link to a specific look */}
             {context?.name && (
-                <div className="flex items-center gap-3 bg-amber-50 border border-amber-100 rounded-xl p-2.5">
+                <div className="flex items-center gap-3 rounded-2xl bg-surface p-2.5">
                     {context.thumbnail && (
                         <img src={context.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                     )}
-                    <p className="text-[13px] text-gray-700 leading-snug">
-                        Unlock <span className="font-semibold text-gray-900">{context.name}</span> — pick a pack to try it on your photo.
+                    <p className="text-[13px] leading-snug text-ink-2">
+                        Unlock <span className="font-semibold text-ink">{context.name}</span> — pick a pack to try it on your photo.
                     </p>
                 </div>
             )}
@@ -140,29 +140,29 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
                                         onClick={() => buyCredits(item.rcPackage.product.identifier)}
                                         disabled={!!isProcessingProductId}
                                         className={`
-                                            relative flex items-center gap-3 w-full p-3 rounded-2xl text-left transition-all duration-150
+                                            relative flex items-center gap-3.5 w-full p-3.5 rounded-2xl text-left transition-all duration-150
                                             ${isPopular
-                                                ? 'bg-[#1a1a1a] ring-1 ring-black/5'
-                                                : 'bg-gray-50 hover:bg-gray-100'
+                                                ? 'bg-ink'
+                                                : 'bg-surface'
                                             }
                                             ${isProcessingProductId ? 'opacity-60 cursor-not-allowed' : 'active:scale-[0.98]'}
                                         `}
                                     >
                                         {/* Popular badge */}
                                         {isPopular && (
-                                            <span className="absolute -top-2 left-4 text-[10px] font-bold tracking-wide uppercase bg-amber-400 text-gray-900 px-2 py-0.5 rounded-full">
-                                                Best Value
+                                            <span className="absolute -top-2 left-4 rounded-full bg-brass px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
+                                                Best value
                                             </span>
                                         )}
 
                                         {/* One ionicon, not a different emoji per pack (plan §1.3
                                             kills emoji-as-icon; five of them turned the purchase
                                             list into a sticker sheet). */}
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isPopular ? 'bg-white/10' : 'bg-gray-100'}`}>
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isPopular ? 'bg-white/10' : 'bg-surface-2'}`}>
                                             <IonIcon
                                                 icon={sparklesOutline}
                                                 style={{ fontSize: 18 }}
-                                                className={isPopular ? 'text-amber-400' : 'text-gray-400'}
+                                                className={isPopular ? 'text-brass' : 'text-brass'}
                                             />
                                         </div>
 
@@ -170,22 +170,22 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
                                             bought. The catalogue's own displayLabel ("100 credits")
                                             is deliberately not rendered. */}
                                         <div className="flex-1 min-w-0">
-                                            <p className={`text-[14px] font-semibold leading-tight ${isPopular ? 'text-white' : 'text-gray-900'}`}>
+                                            <p className={`text-[15px] font-semibold leading-tight ${isPopular ? 'text-white' : 'text-ink'}`}>
                                                 {looks} {looks === 1 ? 'look' : 'looks'}
                                             </p>
-                                            <p className={`text-[12px] mt-0.5 leading-snug ${isPopular ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            <p className={`mt-0.5 text-[12px] leading-snug ${isPopular ? 'text-white/55' : 'text-ink-3'}`}>
                                                 {item.catalogPack.name}
                                             </p>
                                         </div>
 
                                         {/* Price */}
                                         <div className={`
-                                            flex-shrink-0 px-3.5 py-1.5 rounded-xl text-[13px] font-bold transition-all
+                                            flex-shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold transition-all
                                             ${isProcessing
-                                                ? 'bg-gray-200 text-gray-500'
+                                                ? 'bg-hairline text-ink-3'
                                                 : isPopular
-                                                    ? 'bg-white text-gray-900'
-                                                    : 'bg-[#1a1a1a] text-white'
+                                                    ? 'bg-white text-ink'
+                                                    : 'bg-surface-2 text-ink ring-1 ring-hairline'
                                             }
                                         `}>
                                             {isProcessing
@@ -198,10 +198,10 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
                             })
                         ) : (
                             <div className="py-8 text-center">
-                                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                                    <Sparkles className="w-5 h-5 text-gray-300" />
+                                <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-surface">
+                                    <Sparkles className="h-5 w-5 text-ink-3" />
                                 </div>
-                                <p className="text-[13px] text-gray-400">Nothing to buy here just yet.</p>
+                                <p className="text-[13px] text-ink-3">Nothing to buy here just yet.</p>
                             </div>
                         )}
                     </div>
@@ -233,7 +233,7 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
                         }
                     }}
                     disabled={isRestoring}
-                    className="flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1.5 text-[12px] text-ink-2 transition-colors disabled:opacity-50"
                 >
                     {isRestoring ? (
                         <Loader2 className="w-3 h-3 animate-spin" />
@@ -242,9 +242,9 @@ export const PaywallScreen: React.FC<{ onClose: () => void; context?: any }> = (
                     )}
                     Restore Purchases
                 </button>
-                <div className="flex justify-center space-x-4 text-[10px] text-gray-300">
-                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-gray-500 transition-colors">Terms</a>
-                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-gray-500 transition-colors">Privacy</a>
+                <div className="flex justify-center space-x-4 text-[11px] text-ink-3">
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="transition-colors">Terms</a>
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="transition-colors">Privacy</a>
                 </div>
                 {/* The "temporary" debug line lived here and shipped: it printed
                     internal product ids, the offering name and package counts in

@@ -57,14 +57,14 @@ const SavedLookCard: React.FC<{
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.04, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="group relative overflow-hidden rounded-2xl bg-white shadow-sm shadow-gray-200/60 ring-1 ring-black/[0.04] cursor-pointer"
+      className="group relative cursor-pointer overflow-hidden rounded-2xl bg-surface-2"
       onClick={() => {
         const url = look.snapshot?.generatedImageUrl || look.snapshot?.originalImageUrl;
         if (url) onView(url, look.title || look.snapshot?.hairstyleName || 'Saved Look');
       }}
     >
       {/* Image */}
-      <div className="aspect-[3/4] relative bg-gray-50">
+      <div className="relative aspect-[3/4] bg-surface">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -84,8 +84,8 @@ const SavedLookCard: React.FC<{
         {/* Pin badge */}
         {look.isPinned && (
           <div className="absolute top-2.5 left-2.5 flex items-center gap-1 px-2 py-1 rounded-full bg-white/90 backdrop-blur-sm shadow-sm">
-            <Pin className="w-3 h-3 text-amber-500" />
-            <span className="text-[10px] font-semibold text-amber-700">Pinned</span>
+            <Pin className="w-3 h-3 text-brass" />
+            <span className="text-[10px] font-semibold text-brass-ink">Pinned</span>
           </div>
         )}
 
@@ -100,7 +100,7 @@ const SavedLookCard: React.FC<{
             className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm active:scale-95 transition-transform"
             aria-label={look.isPinned ? 'Unpin' : 'Pin'}
           >
-            <Pin className={cn('w-3.5 h-3.5', look.isPinned ? 'text-amber-500' : 'text-gray-500')} />
+            <Pin className={cn('w-3.5 h-3.5', look.isPinned ? 'text-brass' : 'text-ink-2')} />
           </button>
           <button
             onClick={(e) => {
@@ -188,12 +188,12 @@ const HistoryCard: React.FC<{ generation: Generation; index: number; onView: (im
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.04, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="overflow-hidden rounded-2xl bg-white shadow-sm shadow-gray-200/60 ring-1 ring-black/[0.04] cursor-pointer"
+      className="cursor-pointer overflow-hidden rounded-2xl bg-surface-2"
       onClick={() => {
         if (imageUrl) onView(imageUrl, styleName);
       }}
     >
-      <div className="aspect-[3/4] relative bg-gray-50">
+      <div className="relative aspect-[3/4] bg-surface">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -246,27 +246,26 @@ const EmptyState: React.FC<{
   onAction?: () => void;
 }> = ({ icon: Icon, title, description, actionLabel, onAction }) => (
   <motion.div
-    initial={{ opacity: 0, scale: 0.96 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
-    className="flex flex-col items-center justify-center py-20 px-6 text-center"
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+    className="flex flex-col items-center justify-center px-6 py-20 text-center"
   >
-    <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mb-5">
-      <Icon className="w-7 h-7 text-gray-300" />
-    </div>
-    <p className="text-base font-semibold text-gray-800 tracking-tight">{title}</p>
-    <p className="text-sm text-gray-400 mt-1.5 max-w-[260px] leading-relaxed">{description}</p>
+    <span className="grid h-14 w-14 place-items-center rounded-full bg-surface-2">
+      <Icon className="h-6 w-6 text-brass" />
+    </span>
+    <p className="mt-5 font-display text-[22px] leading-tight text-ink">{title}</p>
+    <p className="mt-2 max-w-[270px] text-[14px] leading-relaxed text-ink-2">{description}</p>
     {actionLabel && onAction && (
       <button
         onClick={onAction}
-        className="mt-6 px-6 py-2.5 rounded-full bg-[#1a1a1a] text-white text-sm font-semibold shadow-sm active:scale-[0.97] transition-transform"
+        className="mt-6 h-[46px] rounded-full bg-brass px-7 text-[15px] font-semibold text-white active:scale-[0.98]"
       >
         {actionLabel}
       </button>
     )}
   </motion.div>
 );
-
 // ─── Pagination ─────────────────────────────────────────────────────────
 
 const Pagination: React.FC<{
@@ -563,24 +562,22 @@ export default function SavedLooksPage({ embedded = false, onShowAuth, onStartTr
   if (!isAuthenticated) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="flex flex-col items-center justify-center min-h-[65vh] px-8 text-center"
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        className="flex min-h-[62vh] flex-col items-center justify-center px-8 text-center"
       >
-        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center mb-6 shadow-sm">
-          <Bookmark className="w-9 h-9 text-gray-300" />
-        </div>
-        <h2 className="text-xl font-bold text-gray-900 tracking-tight">Your Looks</h2>
-        <p className="text-sm text-gray-400 mt-2 max-w-[260px] leading-relaxed">
-          Sign in to save your favourite try-ons and build your personal lookbook.
+        <img src="/brand/wordmark-light.png" alt="Hair Studio" className="h-[34px] w-auto" />
+        <div className="mt-3.5 h-px w-10 bg-brass/40" />
+        <h2 className="mt-6 font-display text-[26px] leading-tight text-ink">Your looks</h2>
+        <p className="mt-2 max-w-[280px] text-[14px] leading-relaxed text-ink-2">
+          Sign in and every result you save is kept here — your own lookbook.
         </p>
         <button
           onClick={onShowAuth}
-          className="mt-8 flex items-center gap-2.5 px-8 py-3 rounded-2xl bg-white text-gray-800 text-sm font-semibold shadow-lg shadow-gray-900/8 ring-1 ring-black/[0.08] active:scale-[0.97] transition-transform"
+          className="mt-7 h-[52px] w-full max-w-[300px] rounded-full bg-brass text-[15px] font-semibold text-white active:scale-[0.99]"
         >
-          <svg className="w-[18px] h-[18px] flex-shrink-0" viewBox="-0.5 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none"><path d="M9.827,24 C9.827,22.476 10.08,21.014 10.532,19.644 L2.623,13.604 C1.082,16.734 0.214,20.26 0.214,24 C0.214,27.737 1.081,31.261 2.62,34.388 L10.525,28.337 C10.077,26.973 9.827,25.517 9.827,24" fill="#FBBC05"/><path d="M23.714,10.133 C27.025,10.133 30.016,11.307 32.366,13.227 L39.202,6.4 C35.036,2.773 29.695,0.533 23.714,0.533 C14.427,0.533 6.445,5.844 2.623,13.604 L10.532,19.644 C12.355,14.112 17.549,10.133 23.714,10.133" fill="#EB4335"/><path d="M23.714,37.867 C17.549,37.867 12.355,33.888 10.532,28.356 L2.623,34.395 C6.445,42.156 14.427,47.467 23.714,47.467 C29.445,47.467 34.918,45.431 39.025,41.618 L31.518,35.814 C29.4,37.149 26.732,37.867 23.714,37.867" fill="#34A853"/><path d="M46.145,24 C46.145,22.613 45.932,21.12 45.611,19.733 L23.714,19.733 L23.714,28.8 L36.318,28.8 C35.688,31.891 33.972,34.268 31.518,35.814 L39.025,41.618 C43.339,37.614 46.145,31.649 46.145,24" fill="#4285F4"/></svg>
-          Sign in with Google
+          Sign in
         </button>
       </motion.div>
     );
@@ -588,13 +585,13 @@ export default function SavedLooksPage({ embedded = false, onShowAuth, onStartTr
 
   // ── Signed-in state ──────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full bg-[#faf9f7]">
+    <div className="flex flex-col h-full bg-surface">
       {/* Header */}
-      <div className={cn('px-3', embedded ? 'pt-5 pb-3' : 'sticky top-0 z-10 bg-[#faf9f7] pt-5 pb-3')}>
-        <h1 className="text-[22px] font-bold text-gray-900 tracking-tight">My Looks</h1>
+      <div className={cn('px-3', embedded ? 'pt-5 pb-3' : 'sticky top-0 z-10 bg-surface pt-5 pb-3')}>
+        <h1 className="font-display text-[28px] leading-tight text-ink">Your looks</h1>
 
         {/* Sub-tab toggle */}
-        <div className="flex gap-1 mt-3 p-1 bg-gray-100/80 rounded-2xl">
+        <div className="mt-3 flex gap-1 rounded-2xl bg-surface-2 p-1">
           {(['saved', 'history'] as const).map((tab) => (
             <button
               key={tab}
@@ -602,8 +599,8 @@ export default function SavedLooksPage({ embedded = false, onShowAuth, onStartTr
               className={cn(
                 'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-200',
                 activeSubTab === tab
-                  ? 'bg-white text-gray-900 shadow-sm shadow-gray-200/50'
-                  : 'text-gray-400'
+                  ? 'bg-surface text-ink shadow-sm'
+                  : 'text-ink-3'
               )}
             >
               {tab === 'saved' ? <Bookmark className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
@@ -626,7 +623,7 @@ export default function SavedLooksPage({ embedded = false, onShowAuth, onStartTr
           >
             {/* Count + collection chips */}
             <div className="px-5 pt-1 pb-2 flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-400">
+              <span className="text-[12px] text-ink-3">
                 {looks.length} look{looks.length !== 1 ? 's' : ''}
               </span>
             </div>
@@ -648,9 +645,9 @@ export default function SavedLooksPage({ embedded = false, onShowAuth, onStartTr
               ) : looks.length === 0 ? (
                 <EmptyState
                   icon={Layers}
-                  title="No Saved Looks Yet"
-                  description="After a try-on, tap Save to add looks to your personal collection."
-                  actionLabel="Start Try-On"
+                  title="Nothing saved yet"
+                  description="Tap Save on any result and it lands here."
+                  actionLabel="Browse styles"
                   onAction={onStartTryOn}
                 />
               ) : (
@@ -693,7 +690,7 @@ export default function SavedLooksPage({ embedded = false, onShowAuth, onStartTr
                 icon={Clock}
                 title="No History Yet"
                 description="Your generation history appears here after you try on a hairstyle."
-                actionLabel="Start Try-On"
+                actionLabel="Browse styles"
                 onAction={onStartTryOn}
               />
             ) : (

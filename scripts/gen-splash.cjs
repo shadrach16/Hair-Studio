@@ -340,6 +340,13 @@ function assertXmlCommentsValid(name, xml) {
     const file = path.join(SRC_ART, `wordmark-${variant}.png`);
     await page.screenshot({ path: file, omitBackground: true });
     uris[variant] = `data:image/png;base64,${fs.readFileSync(file).toString('base64')}`;
+
+    // Also published to public/ so the APP can use the same lettering — the
+    // sign-in sheet and the menu header are the "auth header" plan §1.1 allows
+    // the logotype on. Same file, so the boot beat and the app can never drift.
+    const pub = path.join(ROOT, 'public/brand');
+    fs.mkdirSync(pub, { recursive: true });
+    fs.copyFileSync(file, path.join(pub, `wordmark-${variant}.png`));
     await page.close();
   }
   injectWordmark(uris.light, uris.dark);

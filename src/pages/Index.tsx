@@ -307,8 +307,6 @@ export default function StudioPage() {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
   onSuccess={() => setShowAuthModal(false)}
-        title="Sign in to Continue"
-        description="Sign in to choose any hairstyles"
         showProBenefits={false}
       />
 

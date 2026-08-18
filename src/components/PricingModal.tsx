@@ -4,7 +4,10 @@ import React, { useState } from 'react';
 import { PaywallScreen } from '@/components/PaywallScreen';
 import { WebPaywallScreen } from '@/components/WebPaywallScreen';
 import { useAuth } from '@/hooks/useAuth';
-import { Coins, X, ShieldCheck, Gift, ChevronRight } from 'lucide-react';
+import { IonIcon } from '@ionic/react';
+import {
+  closeOutline, giftOutline, chevronForwardOutline, lockClosedOutline, sparklesOutline,
+} from 'ionicons/icons';
 import AuthModal from './AuthModal';
 import { cn } from '@/lib/utils';
 import { TierChooser } from '@/components/PaywallSheet';
@@ -76,7 +79,7 @@ export default function PricingModal({ isOpen, onClose, onOpenRewards, context }
                 triggerHapticFeedback(ImpactStyle.Light);
                 onClose();
               }}
-              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+              className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-[2px]"
             />
 
             {/* Sheet */}
@@ -86,51 +89,38 @@ export default function PricingModal({ isOpen, onClose, onOpenRewards, context }
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 32, stiffness: 350 }}
               className={cn(
-                'fixed z-50 bg-white flex flex-col overflow-hidden',
-                'inset-x-0 bottom-0 max-h-[90vh] rounded-t-[24px]',
+                'fixed z-50 flex flex-col overflow-hidden bg-surface-2',
+                'inset-x-0 bottom-0 max-h-[92vh] rounded-t-[28px]',
                 'lg:inset-auto lg:top-1/2 lg:left-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2',
-                'lg:w-full lg:max-w-lg lg:max-h-[85vh] lg:rounded-[24px]',
+                'lg:w-full lg:max-w-lg lg:max-h-[88vh] lg:rounded-[28px]',
               )}
             >
               {/* ── Handle + Header ───────────────────────── */}
               <div className="flex-shrink-0">
-                <div className="flex justify-center pt-2 pb-0.5">
-                  <div className="w-8 h-[3px] rounded-full bg-gray-200" />
+                <div className="flex justify-center pb-0.5 pt-3">
+                  <div className="h-1 w-9 rounded-full bg-hairline" />
                 </div>
 
-                <div className="flex items-center justify-between px-5 py-3">
-                  {/* Was "Get Credits" — a title that describes a refill, not a
-                      product. The sheet now leads with the tiers. */}
-                  <h2 className="text-[18px] font-bold text-gray-900 tracking-tight">
-                    Your plan
-                  </h2>
+                <div className="flex items-center justify-end px-5 pt-2">
                   <button
                     onClick={() => {
                       triggerHapticFeedback(ImpactStyle.Light);
                       onClose();
                     }}
-                    className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-gray-200 transition-colors"
+                    aria-label="Close"
+                    className="grid h-9 w-9 place-items-center rounded-full bg-surface text-ink-3 active:scale-95"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <IonIcon icon={closeOutline} style={{ fontSize: 18 }} />
                   </button>
                 </div>
 
                 {/* Balance pill */}
                 {isAuthenticated && (
-                  <div className="px-5 pb-3">
-                    <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-gray-50 rounded-xl">
-                      <div className="w-8 h-8 rounded-full bg-[#1a1a1a] flex items-center justify-center">
-                        <Coins className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-[11px] text-gray-400 leading-none">Left to use</p>
-                        <p className="text-[16px] font-bold text-gray-900 leading-tight tabular-nums">
-                          {looksLeft} <span className="text-[12px] font-medium text-gray-400">
-                            {looksLeft === 1 ? 'look' : 'looks'}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
+                  <div className="px-5 pb-1 text-center">
+                    <p className="font-display text-[30px] leading-none text-ink">{looksLeft}</p>
+                    <p className="mt-1 text-[13px] text-ink-2">
+                      {looksLeft === 1 ? 'look left' : 'looks left'}
+                    </p>
                   </div>
                 )}
               </div>
@@ -149,12 +139,12 @@ export default function PricingModal({ isOpen, onClose, onOpenRewards, context }
                   }}
                 />
 
-                <div className="my-5 flex items-center gap-3">
-                  <span className="h-px flex-1 bg-gray-100" />
-                  <span className="text-[11px] uppercase tracking-wider text-gray-400">
+                <div className="my-6 flex items-center gap-3">
+                  <span className="h-px flex-1 bg-hairline" />
+                  <span className="text-[11px] uppercase tracking-[0.12em] text-ink-3">
                     Or top up
                   </span>
-                  <span className="h-px flex-1 bg-gray-100" />
+                  <span className="h-px flex-1 bg-hairline" />
                 </div>
 
                 {Capacitor.isNativePlatform() ? (
@@ -165,7 +155,7 @@ export default function PricingModal({ isOpen, onClose, onOpenRewards, context }
               </div>
 
               {/* ── Footer ───────────────────────────────── */}
-              <div className="flex-shrink-0 px-5 py-3 border-t border-gray-100 space-y-2.5">
+              <div className="flex-shrink-0 space-y-2.5 border-t border-hairline px-5 py-3">
                 {onOpenRewards && (
                   <button
                     onClick={() => {
@@ -173,13 +163,13 @@ export default function PricingModal({ isOpen, onClose, onOpenRewards, context }
                       onClose();
                       onOpenRewards();
                     }}
-                    className="flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                    className="flex w-full items-center justify-between rounded-2xl bg-surface px-3.5 py-3 transition-colors active:scale-[0.99]"
                   >
                     <div className="flex items-center gap-2">
-                      <Gift className="w-4 h-4 text-gray-500" />
-                      <span className="text-[13px] font-medium text-gray-600">Earn free looks</span>
+                      <IonIcon icon={giftOutline} style={{ fontSize: 17 }} className="text-brass" />
+                      <span className="text-[14px] text-ink">Invite friends</span>
                     </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+                    <IonIcon icon={chevronForwardOutline} style={{ fontSize: 15 }} className="text-ink-3" />
                   </button>
                 )}
                 {/* "30-day guarantee" was here and nothing in the app or the
@@ -189,8 +179,8 @@ export default function PricingModal({ isOpen, onClose, onOpenRewards, context }
                     "no fake discounts, no guarantees"). What is left is true:
                     Play handles the payment, and balances do not expire. */}
                 <div className="flex items-center justify-center gap-1.5">
-                  <ShieldCheck className="w-3 h-3 text-emerald-500 flex-shrink-0" />
-                  <p className="text-[10px] text-gray-300">
+                  <IonIcon icon={lockClosedOutline} style={{ fontSize: 12 }} className="shrink-0 text-ink-3" />
+                  <p className="text-[11px] text-ink-3">
                     Paid through Google Play · your looks never expire
                   </p>
                 </div>
@@ -204,8 +194,6 @@ export default function PricingModal({ isOpen, onClose, onOpenRewards, context }
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         onSuccess={handleAuthSuccess}
-        title="Sign in to Continue"
-        description="Create your account to keep your looks and pick up where you left off."
         showProBenefits={false}
       />
     </>
