@@ -1,0 +1,125 @@
+{
+  "_comment": "Cumulative provenance ledger for catalogue seed runs. A sourceUrl already present here is a skip on future runs.",
+  "entries": [
+    {
+      "sourceUrl": "https://www.pexels.com/photo/smiling-woman-with-natural-twists-and-pink-earrings-30091514/",
+      "photographer": "Wings Panic",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a91b410840f5ce43401d",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013402/Hairstyles/natural_mini_twists_with_side_sweep.jpg"
+    },
+    {
+      "sourceUrl": "https://www.pexels.com/photo/woman-in-orange-dress-with-braided-hair-1962844/",
+      "photographer": "willsantt",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a91c410840f5ce43401f",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013403/Hairstyles/silver_senegalese_twists_with_cuffs.jpg"
+    },
+    {
+      "sourceUrl": "https://www.pexels.com/photo/portrait-of-young-woman-with-natural-hair-outdoors-33826104/",
+      "photographer": "Daniel Oni",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a91c410840f5ce434021",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013404/Hairstyles/copper_spring_twists_bob.jpg"
+    },
+    {
+      "sourceUrl": "https://www.pexels.com/photo/a-man-with-braided-hair-10143324/",
+      "photographer": "Ron Lach",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a91d410840f5ce434023",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013405/Hairstyles/short_box_braids_with_skin_fade.jpg"
+    },
+    {
+      "sourceUrl": "https://www.pexels.com/photo/young-woman-in-pink-with-braided-hair-and-beads-29496369/",
+      "photographer": "Ramy Photographer",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a91f410840f5ce434025",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013406/Hairstyles/boho_fulani_braids_with_amber_beads.jpg"
+    },
+    {
+      "sourceUrl": "https://www.pexels.com/photo/side-profile-of-woman-with-unique-twisted-hairstyle-31338420/",
+      "photographer": "Adefemi Adedoyin",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a91f410840f5ce434027",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013407/Hairstyles/threaded_crown_spikes_with_low_bun.jpg"
+    },
+    {
+      "sourceUrl": "https://www.pexels.com/photo/woman-wearing-white-blouse-posing-against-beige-background-14001739/",
+      "photographer": "Ayomide Onasanya",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a921410840f5ce434029",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013408/Hairstyles/sleek_relaxed_lob_with_center_part.jpg"
+    },
+    {
+      "sourceUrl": "https://www.pexels.com/photo/smiling-black-woman-touching-wavy-hair-6953589/",
+      "photographer": "George Milton",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a921410840f5ce43402b",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013409/Hairstyles/half_up_high_pony_with_loose_curls.jpg"
+    },
+    {
+      "sourceUrl": "https://www.pexels.com/photo/a-beautiful-woman-in-curly-hair-smiling-at-the-camera-8497559/",
+      "photographer": "Anna Zaykina",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a922410840f5ce43402d",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013409/Hairstyles/honey_lit_curly_bob.jpg"
+    },
+    {
+      "sourceUrl": "https://www.pexels.com/photo/elegant-portrait-of-a-woman-in-nature-31626915/",
+      "photographer": "Mukhtar Shuaib Mukhtar",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a923410840f5ce43402f",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013411/Hairstyles/bronze_tipped_short_locs_with_fringe.jpg"
+    },
+    {
+      "sourceUrl": "https://www.pexels.com/photo/elegant-portrait-of-a-woman-with-braided-hair-31682625/",
+      "photographer": "Heyy Kazz",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a924410840f5ce434031",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013412/Hairstyles/chunky_faux_locs_with_thread_wraps.jpg"
+    },
+    {
+      "sourceUrl": "https://www.pexels.com/photo/portrait-of-a-stylish-man-with-dreadlocks-38256804/",
+      "photographer": "Israel Stephen",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a925410840f5ce434033",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013413/Hairstyles/loc_top_knot_with_cowrie_shells.jpg"
+    },
+    {
+      "sourceUrl": "https://www.pexels.com/photo/portrait-of-a-man-outdoors-with-curly-hair-35638453/",
+      "photographer": "Everton Silva",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a926410840f5ce434035",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013413/Hairstyles/shoulder_length_3c_ringlet_mane.jpg"
+    },
+    {
+      "sourceUrl": "https://www.pexels.com/photo/portrait-of-a-young-black-man-with-earrings-35249124/",
+      "photographer": "Okiki Onipede",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a927410840f5ce434037",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013414/Hairstyles/even_short_natural_coils.jpg"
+    },
+    {
+      "sourceUrl": "https://www.pexels.com/photo/portrait-of-a-woman-in-a-large-afro-15834875/",
+      "photographer": "Joshua Abner",
+      "license": "Pexels",
+      "fetchedAt": "2026-08-18T01:10:00+01:00",
+      "styleId": "6a83a928410840f5ce434039",
+      "cloudinaryUrl": "https://res.cloudinary.com/djpcokxvn/image/upload/v1787013415/Hairstyles/oversized_curly_afro_blowout.jpg"
+    }
+  ]
+}

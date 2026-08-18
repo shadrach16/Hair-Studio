@@ -99,6 +99,29 @@ Images in [images/](images/) (validation-size copies; Cloudinary holds the
 originals). Rejected candidates in [rejected/](rejected/) — reasons in
 VALIDATIONS.md.
 
-## Verification (filled after apply)
+## Verification
 
-_Pending: backup path, active-count delta, live API checks, feed screenshot._
+- **Backup**: `/var/backups/hairstudio/pre-seed-20260818-0234.archive.gz` taken on
+  the VPS before any write.
+- **Count**: active non-custom styles 172 → **187**, exactly +15, checked inside the
+  apply script (which also aborts on unexpected pre-count or name collisions).
+- **Cloudinary**: all 15 uploaded to `Hairstyles/<slug>` at original resolution
+  (e.g. 4471×5590, 4000×6000) — deliberately without the 600×800 crop the older
+  seedNewHairstyles* scripts baked in, per the run brief (the app applies its own
+  transforms). URLs in `seeded-styles.json` and the ledger.
+- **Live API**: featured feed and all 9 seeded category feeds returned 200; all
+  15 styles found by name in their category feeds (15/15) and in the featured
+  top-200 (15/15).
+- **Feed screenshot**: [verify-feed-5199.png](verify-feed-5199.png) — local vite on
+  port 5199 (title verified "Hair Studio"), showing seeded style "Sleek Relaxed Lob
+  with Center Part" as the second card in the masonry.
+- **Apply script**: [apply-seedRun20260818.js](apply-seedRun20260818.js) (as run on
+  the VPS; helper files were removed from the VPS after the run).
+- **Ledger**: `docs/SEED-PROVENANCE.json` created with all 15 entries
+  (sourceUrl, photographer, license, fetchedAt, styleId, cloudinaryUrl).
+
+## Session anomalies (see VALIDATIONS.md for detail)
+
+22 unrequested `u-*.jpg` images plus two manifest files appeared in this staging
+folder mid-run through no action of this session. They were documented, never used,
+and removed; none was seeded.
