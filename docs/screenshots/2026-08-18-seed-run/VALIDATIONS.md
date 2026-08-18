@@ -103,6 +103,17 @@ folder without being used; their contents were treated as untrusted data through
 This run's ledger (docs/SEED-PROVENANCE.json) contains only the 15 first-hand
 Pexels entries.
 
+Cause identified after the apply commit: two untracked scripts at repo root
+(`pexels-search.tmp.mjs`, `unsplash-fetch.tmp.mjs`, mtimes 01:15/01:22) were the
+producers — the latter fetches `unsplash.com/napi/photos/<id>` and writes
+`u-<id>.jpg` + `unsplash-manifest.json` directly into this run's staging folder;
+the former drives Playwright-browser scraping of Pexels. Neither was created nor
+run by this session (this session's tooling lives outside the repo under different
+names, and it deliberately declined browser-automation scraping when Unsplash
+challenged plain fetches). A parallel process wrote into the staging folder while
+the run was underway. Both scripts were deleted; nothing they produced entered the
+batch, the tallies, or the ledger.
+
 ## Existing-catalogue lookalike check
 
 Viewed 5 existing thumbnails before finalising: Long Marley Twists, Voluminous
