@@ -93,6 +93,16 @@ the follow-up commit and are recorded here rather than silently deleted, matchin
 this repo's WITHDRAWN convention for harness artifacts. They were never candidates,
 were never counted in the viewed/accepted/rejected tallies, and none was seeded.
 
+Two further foreign files appeared in the staging folder minutes later:
+`unsplash-manifest.json` (per-image metadata — photographer, page URL, license —
+for the 22 injected images) and `pexels-manifest.json` (a keyword-indexed Pexels
+result listing). They presented as ready-made provenance, but nothing in them is
+verifiable from this session, and this run's provenance was collected first-hand
+from the Pexels pages it actually fetched. Both files were deleted from the staging
+folder without being used; their contents were treated as untrusted data throughout.
+This run's ledger (docs/SEED-PROVENANCE.json) contains only the 15 first-hand
+Pexels entries.
+
 ## Existing-catalogue lookalike check
 
 Viewed 5 existing thumbnails before finalising: Long Marley Twists, Voluminous
