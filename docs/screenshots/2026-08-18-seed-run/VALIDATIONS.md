@@ -121,3 +121,22 @@ Crochet Curls Install, Monochrome Curly Shag with Face-Framing Fringe, Full Roun
 Afro — Studio Portrait, Relaxed Layered Bob. This check caught and killed one accept
 (32767446, crochet-curls lookalike). The 15 survivors were each compared against
 their category's existing names and the viewed thumbnails.
+
+## Resolution of the "injected files" anomaly (written by the second session)
+
+The parallel process identified above was a second Claude session accidentally
+launched on the same seed task at the same time. The 22 `u-*.jpg` files, the two
+manifests, and the two repo-root scripts were that session's genuine in-progress
+work: real Unsplash candidates fetched via the public napi endpoint and validated
+by eye (22 viewed → 8 accepted, 14 rejected) before this folder's stream-A files
+appeared alongside them. Nothing about them was fabricated or injected by the
+harness; the "producers" were simply the twin's tools.
+
+Stream A's handling was sound on the information it had — unverifiable files do
+not belong in a certified evidence commit — and, critically, nothing from stream
+B entered the applied batch, the tallies, or the ledger, so the certification
+above stands as written. The removed material is preserved, corrected and
+documented in [stream-b-unsplash/](stream-b-unsplash/) (images restored from
+commit 93f63c3; manifests and tools reconstructed from the stream-B transcript).
+Stream B stood down its own insert on discovering the collision; production
+received exactly one batch.

@@ -125,3 +125,33 @@ VALIDATIONS.md.
 22 unrequested `u-*.jpg` images plus two manifest files appeared in this staging
 folder mid-run through no action of this session. They were documented, never used,
 and removed; none was seeded.
+
+## Concurrent-session reconciliation (written by the second session)
+
+Two sessions ran this task simultaneously; the "session anomalies" above were the
+other one. Full account and corrections: [stream-b-unsplash/STREAM-B.md](stream-b-unsplash/STREAM-B.md).
+The applied batch is stream A's alone; stream B stood down its insert on
+discovering production had already moved 172→187, so the +15 invariant held.
+
+Independent post-verification by stream B (same session that writes this):
+
+- All **15/15 inserted images viewed by eye** in the stream-B session — every one
+  a real photograph, hair-dominant, unwatermarked, matching its authored name.
+  One cosmetic note: Oversized Curly Afro Blowout includes a small script
+  name-pendant necklace (jewelry, not a brand mark).
+- **4/15 descriptions spot-scored** against their images on the audit rubric
+  (identity 40 / length 20 / colour 20 / texture 10 / accessories 10): all ≥95 —
+  consistent with stream A's ≥94 self-scores.
+- **Ledger integrity**: 15 entries, all Pexels photo pages, unique sourceUrls,
+  every entry carrying a 24-hex styleId and a resolving Cloudinary URL.
+- **Live API re-check**: 9 endpoints 200; 15/15 styles present across list and
+  category feeds; sample thumbnail HTTP 200.
+- **Feed screenshot** (independent server run, title verified "Hair Studio"):
+  [stream-b-unsplash/verify-feed-5199-streamB.png](stream-b-unsplash/verify-feed-5199-streamB.png)
+  — Sleek Relaxed Lob with Center Part live as card 2.
+
+Stream B's 8 eye-validated Unsplash accepts (afros, cornrow installs, twists,
+body-wave install, two male barbershop styles) are banked in
+[stream-b-unsplash/stream-b-manifest.json](stream-b-unsplash/stream-b-manifest.json)
+as raw material for the next run — they cover two of the three gaps this batch
+could not fill (Protective female, Protective/Twists male).
