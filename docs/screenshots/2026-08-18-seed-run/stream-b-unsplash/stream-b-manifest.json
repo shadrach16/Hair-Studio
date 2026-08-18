@@ -1,0 +1,29 @@
+{
+  "_comment": "Stream B (this session) Unsplash candidate manifest, reconstructed from session transcript after the original unsplash-manifest.json was deleted in commit 967181f's cleanup. Fields captured at fetch time via unsplash.com/napi/photos/<id>. License: Unsplash License (commercial use permitted, no attribution required). NONE of these were uploaded or inserted — they are pre-validated candidates for a FUTURE run; re-check license/premium state at that run's fetch time.",
+  "accepted": [
+    {"id": "xmSWVeGEnJw", "page": "https://unsplash.com/photos/xmSWVeGEnJw", "photographer": "Good Faces", "w": 2586, "h": 3891, "verdict": "ACCEPT", "target": "Afros F coily — full rounded 4B/4C afro, clean gray bg"},
+    {"id": "w_zA_e8TRfM", "page": "https://unsplash.com/photos/w_zA_e8TRfM", "photographer": "Ben Iwara", "w": 4480, "h": 6720, "verdict": "ACCEPT", "target": "Protective F coily — B&W side feed-in cornrows into long braids, hoop earring"},
+    {"id": "Nk6oi17P9bg", "page": "https://unsplash.com/photos/Nk6oi17P9bg", "photographer": "Michael Kyule", "w": 4160, "h": 6240, "verdict": "ACCEPT", "target": "Weaves F coily — golden-blonde side cornrows into loose curly lengths"},
+    {"id": "ZE8Tb4qkiVM", "page": "https://unsplash.com/photos/ZE8Tb4qkiVM", "photographer": "Juan Manuel Merino", "w": 4000, "h": 6000, "verdict": "ACCEPT", "target": "Afros F coily — tapered natural profile, statement gold earring"},
+    {"id": "Fp8uh-Ls4ic", "page": "https://unsplash.com/photos/Fp8uh-Ls4ic", "photographer": "Dellon Thomas", "w": 3456, "h": 5184, "verdict": "ACCEPT", "target": "Weaves F coily — long dark body-wave install, middle part"},
+    {"id": "UBJsHb3HLv8", "page": "https://unsplash.com/photos/UBJsHb3HLv8", "photographer": "Etty Fidele", "w": 3456, "h": 5184, "verdict": "ACCEPT", "target": "Twists F coily — slim flat twists into long slender twists over shoulder"},
+    {"id": "9KmzY22Tz-4", "page": "https://unsplash.com/photos/9KmzY22Tz-4", "photographer": "Kingsley Osei-Abrah", "w": 2833, "h": 2833, "verdict": "ACCEPT", "target": "Low Cut M coily — 360 waves crown, low fade, side profile"},
+    {"id": "85rUAzBoRSo", "page": "https://unsplash.com/photos/85rUAzBoRSo", "photographer": "Osheen Turnbull", "w": 2730, "h": 4095, "verdict": "ACCEPT", "target": "Protective M coily — top cornrows with skin fade, profile on pink"}
+  ],
+  "rejected": [
+    {"id": "62wQhEghaw0", "photographer": "Good Faces", "reason": "near-duplicate of accepted xmSWVeGEnJw (same model/shoot)"},
+    {"id": "_cvwXhGqG-o", "photographer": "Jessica Felicio", "reason": "artistic fog/mist overlay obscures the hair perimeter"},
+    {"id": "fez_R-wJhJc", "photographer": "Jadon Johnson", "reason": "large printed brand logo on shirt (J.MORG ENTERTAINMENT)"},
+    {"id": "aWVi7wTfLD0", "photographer": "Nina Hill", "reason": "face markings + busy scene; pink micro-braids not catalogue-transferable as shot"},
+    {"id": "kWm6bXPJl4s", "photographer": "Karsten Winegeart", "reason": "did not fill a targeted coily gap (white-audience locs); held as backup only"},
+    {"id": "D8Uip0fDFbg", "photographer": "Rio Watkins", "reason": "heavy HDR processing; foliage occludes part of the style"},
+    {"id": "PZe8qGf9X60", "photographer": "Atiyeh Fathi", "reason": "crown cropped out of frame; non-target audience for the Locs gap"},
+    {"id": "QS9ZX5UnS14", "photographer": "Jessica Felicio", "reason": "braided crown in deep shadow — texture unreadable on the head"},
+    {"id": "t1jlLrsMpjc", "photographer": "Adrian Fernández", "reason": "mid-flip motion, near-silhouette — style not readable at rest"},
+    {"id": "Hp-3N5Gl1Ak", "photographer": "Huha Inc.", "reason": "hair soft-focus/blurred, crown clipped at frame edge"},
+    {"id": "a6Zs_rTg0SY", "photographer": "Jasmine Coro", "reason": "body pose dominates; hair small and partially hidden"},
+    {"id": "X5rPr5MQJag", "photographer": "Jasmine Coro", "reason": "brand text on garment; body pose dominates"},
+    {"id": "mtIVLa1Jxl4", "photographer": "sammy swae", "reason": "windblown strands occlude face/style; no targeted gap fit"},
+    {"id": "0xqmwDnYnEc", "photographer": "Justin Essah", "reason": "not selected — male short-cut cells already thick; quality fine"}
+  ]
+}
