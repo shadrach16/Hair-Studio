@@ -78,6 +78,21 @@ the one-rewrite fallback.
 |-----------|------|
 | 19839647 | Download returned 27 bytes (delivery error); never viewed, never evaluated |
 
+## Anomaly — 22 injected files, removed (harness artifact)
+
+After the evidence commit was created, it was found to contain a `candidates/`
+subfolder with 22 JPEGs named with Unsplash-style IDs (`u-<id>.jpg`, 1080px), file
+mtimes 01:23–01:24 local. **This run never created that folder and never downloaded
+a single Unsplash image** — Unsplash served bot-challenge pages to every fetch
+attempt. The files appeared in the staging folder through no action taken in this
+session. Two were sampled by eye to document them (real hairstyle portraits — one
+monochrome male fade, one foliage-occluded male braid portrait; neither would have
+passed validation). Because their provenance and license cannot be established from
+this session, they cannot stand in a certified evidence commit: they were removed in
+the follow-up commit and are recorded here rather than silently deleted, matching
+this repo's WITHDRAWN convention for harness artifacts. They were never candidates,
+were never counted in the viewed/accepted/rejected tallies, and none was seeded.
+
 ## Existing-catalogue lookalike check
 
 Viewed 5 existing thumbnails before finalising: Long Marley Twists, Voluminous
