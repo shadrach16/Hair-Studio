@@ -4,21 +4,57 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Page Not Found — Hair Studio</title>
+  <meta name="robots" content="noindex, follow" />
+  <link rel="icon" href="img/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', -apple-system, sans-serif; background: #FFFDF7; color: #2D2014; display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 2rem; }
-    .container { max-width: 400px; }
-    h1 { font-size: 4rem; color: #C8860A; margin-bottom: 1rem; }
-    p { color: #6B5E52; margin-bottom: 2rem; font-size: 1.1rem; }
-    a { display: inline-block; background: #1B2A4A; color: #fff; padding: 0.8rem 2rem; border-radius: 12px; font-weight: 600; text-decoration: none; transition: transform 0.2s; }
-    a:hover { transform: translateY(-2px); }
+    .notfound {
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 2rem var(--gutter);
+      background:
+        radial-gradient(50rem 30rem at 50% 20%, var(--gold-soft), transparent 65%),
+        var(--paper);
+    }
+    .notfound-inner { max-width: 34rem; }
+    .notfound .code {
+      font-family: var(--font-display);
+      font-size: clamp(5rem, 18vw, 9rem);
+      font-weight: 900;
+      line-height: 0.9;
+      letter-spacing: -0.05em;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+    .notfound h1 {
+      font-family: var(--font-display);
+      font-size: var(--fs-h2);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+      margin-bottom: 0.75rem;
+    }
+    .notfound p { color: var(--muted); font-size: var(--fs-lead); margin-bottom: 2rem; text-wrap: pretty; }
+    .notfound-links { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>404</h1>
-    <p>This page doesn't exist. Let's get you back to discovering your perfect hairstyle.</p>
-    <a href="index.html">Back to Hair Studio</a>
-  </div>
+  <main class="notfound">
+    <div class="notfound-inner">
+      <div class="code" aria-hidden="true">404</div>
+      <h1>That page isn't here</h1>
+      <p>The link may be old, or the page may have moved. The two places worth going are below.</p>
+      <div class="notfound-links">
+        <a href="./" class="btn-primary">Back to Hair Studio</a>
+        <a href="blog/" class="btn-ghost">Read the blog</a>
+      </div>
+    </div>
+  </main>
 </body>
 </html>

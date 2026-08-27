@@ -1,337 +1,314 @@
-/* ============================================
-   BLOG STYLES
-   ============================================ */
+/* ============================================================================
+   HAIR STUDIO — BLOG
+   ----------------------------------------------------------------------------
+   Layered on css/style.css: tokens, nav, footer and buttons all come from
+   there. This file only adds the reading experience — index cards, the article
+   header, and long-form prose.
 
-/* Blog Hero */
+   Measure is the whole game in long form. The old sheet let paragraphs run the
+   full 1200px container on a desktop, which is roughly 140 characters a line;
+   this caps prose at 68ch and lets figures and tables break wider.
+   ========================================================================== */
+
+/* --- Blog index ----------------------------------------------------------- */
 .blog-hero {
-  padding: calc(var(--nav-height) + 4rem) 1.5rem 3rem;
+  padding-block: clamp(3.5rem, 7vw, 6rem) clamp(2rem, 4vw, 3rem);
   text-align: center;
-  background: linear-gradient(180deg, var(--color-bg-warm) 0%, var(--color-bg) 100%);
+  background:
+    radial-gradient(50rem 30rem at 50% 0%, var(--gold-soft), transparent 65%),
+    var(--paper);
 }
-
+.blog-label {
+  display: block;
+  margin-bottom: 0.85rem;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
 .blog-hero h1 {
   font-family: var(--font-display);
-  font-size: 2.8rem;
+  font-size: var(--fs-h2);
   font-weight: 800;
-  color: var(--color-navy);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
   margin-bottom: 0.75rem;
 }
-
 .blog-hero-sub {
-  font-size: 1.1rem;
-  color: var(--color-text-muted);
+  max-width: 58ch;
+  margin-inline: auto;
+  color: var(--muted);
+  font-size: var(--fs-lead);
+  text-wrap: pretty;
 }
 
-.blog-label {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-gold);
-  background: linear-gradient(135deg, rgba(200,134,10,0.1) 0%, rgba(200,134,10,0.05) 100%);
-  border: 1px solid rgba(200,134,10,0.2);
-  padding: 0.35rem 1rem;
-  border-radius: 50px;
-  margin-bottom: 1rem;
-}
-
-/* Blog Grid */
-.blog-list {
-  padding: 3rem 1.5rem 5rem;
-}
-
+.blog-list { padding-block: clamp(2.5rem, 5vw, 4rem) var(--section-y); }
 .blog-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.blog-grid .blog-card:first-child {
-  grid-column: 1 / -1;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: clamp(1.25rem, 2.5vw, 2rem);
 }
 
 .blog-card {
   display: flex;
   flex-direction: column;
-  background: var(--color-white);
-  border-radius: 16px;
   overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.06);
-  transition: all 0.3s ease;
-  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+  transition: transform .28s var(--ease), box-shadow .28s var(--ease), border-color .28s var(--ease);
 }
-
 .blog-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 48px rgba(27,42,74,0.08);
-  border-color: rgba(200,134,10,0.15);
+  border-color: var(--gold-line);
+  box-shadow: var(--shadow-md);
 }
-
 .blog-card-img {
-  width: 100%;
-  height: 200px;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
+  background: var(--paper-3);
 }
-
-.blog-grid .blog-card:first-child .blog-card-img {
-  height: 280px;
-}
-
 .blog-card-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
+  transition: scale .4s var(--ease);
 }
-
-.blog-card:hover .blog-card-img img {
-  transform: scale(1.05);
-}
-
+.blog-card:hover .blog-card-img img { scale: 1.04; }
 .blog-card-body {
-  padding: 1.5rem;
-  flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 0.65rem;
+  padding: 1.4rem;
+  flex: 1;
+}
+.blog-card-body h2, .blog-card-body h3 {
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.blog-card-body p {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  text-wrap: pretty;
+  flex: 1;
 }
 
 .blog-tag {
   display: inline-block;
-  font-size: 0.7rem;
+  align-self: flex-start;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--radius-pill);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  color: var(--gold-ink);
+  font-size: var(--fs-xs);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-gold);
-  background: rgba(200,134,10,0.08);
-  padding: 0.25rem 0.6rem;
-  border-radius: 4px;
-  margin-bottom: 0.75rem;
-  width: fit-content;
+  letter-spacing: 0.02em;
 }
+.blog-date { font-size: var(--fs-xs); color: var(--muted); }
 
-.blog-card h2 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--color-navy);
-  margin-bottom: 0.5rem;
-  line-height: 1.4;
-}
+.blog-cta { padding-block: 0 var(--section-y); }
 
-.blog-grid .blog-card:first-child h2 {
-  font-size: 1.4rem;
-}
-
-.blog-card p {
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-  line-height: 1.5;
-  flex: 1;
-}
-
-.blog-date {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  margin-top: 1rem;
-  opacity: 0.7;
-}
-
-/* Blog CTA */
-.blog-cta {
-  padding: 0 1.5rem 5rem;
-}
-
-.blog-cta .cta-card {
-  max-width: 700px;
-  margin: 0 auto;
-  text-align: center;
-  padding: 3rem 2rem;
-  background: linear-gradient(135deg, var(--color-navy) 0%, #0d1b4a 100%);
-  border-radius: 20px;
-  color: white;
-}
-
-.blog-cta .cta-card h2 {
-  font-family: var(--font-display);
-  font-size: 1.8rem;
-  color: white;
-  margin-bottom: 0.5rem;
-}
-
-.blog-cta .cta-card p {
-  color: rgba(255,255,255,0.8);
-  margin-bottom: 1.5rem;
-}
-
-/* Article Page Styles */
+/* --- Article header ------------------------------------------------------- */
 .article-hero {
-  padding: calc(var(--nav-height) + 3rem) 1.5rem 2rem;
-  background: linear-gradient(180deg, var(--color-bg-warm) 0%, var(--color-bg) 100%);
+  padding-block: clamp(3rem, 6vw, 5rem) clamp(1.75rem, 3vw, 2.5rem);
+  background:
+    radial-gradient(50rem 30rem at 50% 0%, var(--gold-soft), transparent 65%),
+    var(--paper);
 }
-
-.article-hero .section-container {
-  max-width: 760px;
-}
-
+.article-hero .section-container { max-width: 760px; }
 .article-meta {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
-
-.article-meta .blog-tag {
-  margin-bottom: 0;
-}
-
-.article-meta .blog-date {
-  margin-top: 0;
-  font-size: 0.85rem;
-}
-
 .article-hero h1 {
   font-family: var(--font-display);
-  font-size: 2.4rem;
+  font-size: clamp(2rem, 1.4rem + 2.4vw, 3.1rem);
   font-weight: 800;
-  color: var(--color-navy);
-  line-height: 1.2;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
   margin-bottom: 1rem;
 }
-
-.article-hero p {
-  font-size: 1.1rem;
-  color: var(--color-text-muted);
-  line-height: 1.6;
+.article-hero > .section-container > p {
+  max-width: 62ch;
+  color: var(--muted);
+  font-size: var(--fs-lead);
+  text-wrap: pretty;
 }
 
 .article-cover {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
+  max-width: 900px;
+  margin: 0 auto clamp(2.5rem, 5vw, 3.5rem);
+  padding-inline: var(--gutter);
 }
-
 .article-cover img {
   width: 100%;
-  height: auto;
-  border-radius: 16px;
-  margin-bottom: 2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-md);
 }
 
+/* --- Long-form prose ------------------------------------------------------ */
 .article-body {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  max-width: 68ch;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  padding-bottom: var(--section-y);
+  font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.15rem);
+  line-height: 1.75;
+  color: var(--ink-2);
 }
+.article-body > * + * { margin-top: 1.15rem; }
 
 .article-body h2 {
   font-family: var(--font-display);
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: var(--color-navy);
-  margin: 2.5rem 0 1rem;
+  font-size: clamp(1.55rem, 1.3rem + 1vw, 2.05rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-wrap: balance;
+  margin-top: 2.75rem;
 }
-
 .article-body h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--color-navy);
-  margin: 2rem 0 0.75rem;
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+  text-wrap: balance;
+  margin-top: 2rem;
 }
-
-.article-body p {
-  font-size: 1rem;
-  color: var(--color-text);
-  line-height: 1.8;
-  margin-bottom: 1.25rem;
+.article-body p { text-wrap: pretty; }
+.article-body strong { color: var(--ink); font-weight: 650; }
+.article-body a {
+  color: var(--gold-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
 }
+.article-body a:hover { text-decoration-thickness: 2px; }
 
 .article-body ul, .article-body ol {
-  margin: 1rem 0 1.5rem 1.5rem;
-  line-height: 1.8;
-  color: var(--color-text);
+  margin-left: 1.35rem;
+  display: grid;
+  gap: 0.6rem;
 }
-
-.article-body li {
-  margin-bottom: 0.5rem;
-}
-
-.article-body strong {
-  color: var(--color-navy);
-}
+.article-body li { text-wrap: pretty; }
+.article-body li::marker { color: var(--gold); }
 
 .article-body blockquote {
-  border-left: 3px solid var(--color-gold);
-  padding: 1rem 1.5rem;
-  margin: 1.5rem 0;
-  background: rgba(200,134,10,0.04);
-  border-radius: 0 8px 8px 0;
+  margin-block: 2rem;
+  padding: 0.35rem 0 0.35rem 1.4rem;
+  border-left: 3px solid var(--gold);
+  font-family: var(--font-display);
+  font-size: 1.2em;
   font-style: italic;
-  color: var(--color-text-muted);
+  line-height: 1.5;
+  color: var(--ink);
+  text-wrap: pretty;
 }
 
-.comparison-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1.5rem 0;
-  font-size: 0.9rem;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.08);
-}
-
-.comparison-table th {
-  background: var(--color-navy);
-  color: white;
-  padding: 0.85rem 1rem;
-  text-align: left;
-  font-weight: 600;
-}
-
-.comparison-table td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-.comparison-table tr:nth-child(even) {
-  background: rgba(200,134,10,0.03);
-}
-
-.article-cta-box {
-  background: linear-gradient(135deg, var(--color-navy) 0%, #0d1b4a 100%);
-  border-radius: 16px;
-  padding: 2rem;
-  margin: 2.5rem 0;
+.article-body figure { margin-block: 2rem; }
+.article-body figcaption {
+  margin-top: 0.6rem;
+  font-size: var(--fs-sm);
+  color: var(--muted);
   text-align: center;
-  color: white;
 }
 
+/* Anything wider than the measure breaks out of it, rather than squeezing. */
+.comparison-table,
+.article-body figure.wide {
+  width: min(100vw - 2 * var(--gutter), 920px);
+  margin-inline: calc(50% - min(50vw - var(--gutter), 460px));
+}
+
+/* --- Tables --------------------------------------------------------------- */
+.comparison-table {
+  margin-block: 2.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  font-size: var(--fs-sm);
+  background: var(--paper);
+  display: table;
+}
+.comparison-table thead th {
+  padding: 0.9rem 1rem;
+  background: var(--paper-3);
+  color: var(--ink);
+  font-weight: 700;
+  text-align: left;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.comparison-table td {
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--line);
+  vertical-align: top;
+  text-wrap: pretty;
+}
+.comparison-table tbody tr:nth-child(even) { background: var(--paper-2); }
+.comparison-table td:first-child { font-weight: 600; color: var(--ink); }
+
+/* A table wider than the viewport scrolls in its own box instead of pushing
+   the page sideways. Wrap it in <div class="table-scroll"> where needed. */
+.table-scroll {
+  width: min(100vw - 2 * var(--gutter), 920px);
+  margin-inline: calc(50% - min(50vw - var(--gutter), 460px));
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-scroll .comparison-table { width: 100%; margin-inline: 0; min-width: 560px; }
+
+/* --- Callouts ------------------------------------------------------------- */
+.article-cta-box {
+  margin-block: 2.75rem;
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  border: 1px solid var(--gold-line);
+  border-radius: var(--radius-lg);
+  background: var(--gold-soft);
+  text-align: center;
+}
 .article-cta-box h3 {
-  color: white;
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  font-weight: 800;
+  color: var(--ink);
   margin-top: 0;
+  margin-bottom: 0.5rem;
 }
-
 .article-cta-box p {
-  color: rgba(255,255,255,0.8);
+  max-width: 46ch;
+  margin: 0 auto 1.35rem;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .blog-hero h1 {
-    font-size: 2rem;
-  }
-
-  .blog-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .blog-grid .blog-card:first-child .blog-card-img {
-    height: 200px;
-  }
-
-  .article-hero h1 {
-    font-size: 1.8rem;
-  }
+/* A neutral aside for corrections, method notes and disclosures — the places
+   this blog now has to show its working rather than assert a number. */
+.article-note {
+  margin-block: 2rem;
+  padding: 1.15rem 1.35rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--muted);
+  border-radius: var(--radius-sm);
+  background: var(--paper-2);
+  font-size: var(--fs-sm);
+  color: var(--muted);
 }
+.article-note strong { color: var(--ink-2); }
+.article-note > * + * { margin-top: 0.6rem; }

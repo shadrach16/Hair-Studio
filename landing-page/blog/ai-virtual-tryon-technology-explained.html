@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>How AI Virtual Try-On Technology Actually Works | Hair Studio</title>
-  <meta name="description" content="A behind-the-scenes look at how AI hairstyle try-on apps work — face detection, neural networks, and style transfer explained in plain language." />
+  <meta name="description" content="How AI hairstyle try-on really works in 2026: a reference photograph, an image model, and generated pixels. What it does well, where it fails, and what happens to your photo." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://shadrach16.github.io/ai-hairstyle-virtual-tryon/blog/ai-virtual-tryon-technology-explained.html" />
   <meta property="og:title" content="How AI Virtual Try-On Technology Actually Works" />
-  <meta property="og:description" content="The technology behind AI hairstyle apps — face detection, neural style transfer, and more." />
+  <meta property="og:description" content="No 3D head rig, no in-house GAN. A reference photograph and an image model. Here is the real pipeline." />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://shadrach16.github.io/ai-hairstyle-virtual-tryon/blog/ai-virtual-tryon-technology-explained.html" />
   <meta property="og:image" content="https://shadrach16.github.io/ai-hairstyle-virtual-tryon/img/og-image.png" />
@@ -25,9 +25,9 @@
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     "headline": "How AI Virtual Try-On Technology Actually Works",
-    "description": "A behind-the-scenes look at the AI, face mapping, and neural networks powering modern hairstyle try-on apps.",
+    "description": "The real pipeline behind AI hairstyle try-on: a reference photograph, an image model, and generated pixels.",
     "datePublished": "2026-04-10",
-    "dateModified": "2026-05-03",
+    "dateModified": "2026-08-28",
     "author": {"@type": "Organization", "name": "Wao Apps"},
     "publisher": {"@type": "Organization", "name": "Wao Apps", "logo": {"@type": "ImageObject", "url": "https://shadrach16.github.io/ai-hairstyle-virtual-tryon/img/logo.png"}},
     "mainEntityOfPage": "https://shadrach16.github.io/ai-hairstyle-virtual-tryon/blog/ai-virtual-tryon-technology-explained.html"
@@ -47,6 +47,9 @@
         <li><a href="../#faq">FAQ</a></li>
       </ul>
       <a href="https://play.google.com/store/apps/details?id=com.hairstudio.app" class="nav-cta" target="_blank" rel="noopener">Download Free</a>
+      <button class="nav-toggle" aria-label="Toggle navigation menu" id="nav-toggle">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
@@ -54,89 +57,81 @@
     <div class="section-container">
       <div class="article-meta">
         <span class="blog-tag">Technology</span>
-        <span class="blog-date">April 10, 2026 · 6 min read</span>
+        <span class="blog-date">Updated August 28, 2026 · 6 min read</span>
       </div>
       <h1>How AI Virtual Try-On Technology Actually Works</h1>
-      <p>Ever wondered what happens behind the scenes when you upload a selfie and see yourself with a completely different hairstyle? Here's the technology explained.</p>
+      <p>Less machinery than the marketing suggests, and more interesting for it. Here is the real pipeline behind a hairstyle try-on in 2026 — and the parts that genuinely go wrong.</p>
     </div>
   </section>
 
   <div class="article-cover">
-    <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=900&h=450&fit=crop" alt="AI neural network visualization" />
+    <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=900&h=450&fit=crop" alt="Close-up of a phone screen showing a portrait photograph" loading="lazy" />
   </div>
 
   <article class="article-body">
-    <h2>The Magic Behind the Selfie</h2>
-    <p>When you upload a photo to Hair Studio and select a hairstyle, the result appears in 3-5 seconds. But in those few seconds, several sophisticated AI systems work together to create a realistic transformation. Here's what actually happens:</p>
-
-    <h2>Step 1: Face Detection & Landmark Mapping</h2>
-    <p>The first thing the AI does is find your face in the photo and map it in 3D space. This involves detecting <strong>68+ facial landmarks</strong> — points that identify your eyebrows, jawline, forehead, hairline, ears, and face shape.</p>
-    <p>This isn't just "finding a face" — it's understanding the precise geometry of YOUR face. The AI determines:</p>
-    <ul>
-      <li>Your face shape (oval, round, square, heart, etc.)</li>
-      <li>Your hairline position and shape</li>
-      <li>The angle your face is turned (frontal, slight turn, profile)</li>
-      <li>The lighting direction in the photo</li>
-      <li>Your skin tone for color matching</li>
-    </ul>
-
-    <h2>Step 2: Hair Region Segmentation</h2>
-    <p>Next, the AI uses semantic segmentation to identify exactly where your current hair is in the image. It creates a pixel-perfect mask that separates hair from face from background. This is crucial because the new hairstyle needs to replace your current hair while preserving everything else.</p>
-    <p>Modern segmentation networks can handle complex scenarios: hair blown by wind, strands across the face, hands touching hair, hats partially covering hair, etc. The mask is refined to sub-pixel accuracy.</p>
-
-    <h2>Step 3: Neural Style Transfer</h2>
-    <p>This is where the magic happens. A <strong>Generative Adversarial Network (GAN)</strong> takes your facial landmarks, the segmentation mask, and the target hairstyle, then generates a completely new image.</p>
-    <p>The GAN has been trained on millions of hairstyle images to understand how hair drapes, reflects light, casts shadows, and interacts with different face shapes. It doesn't just paste a hairstyle on — it <em>generates</em> new pixels that look like a real photograph.</p>
-    <blockquote>Think of it like a digital artist who can paint any hairstyle on any face in 3 seconds — but with the consistency of a machine.</blockquote>
-
-    <h2>Step 4: Lighting & Color Matching</h2>
-    <p>The AI analyzes the lighting conditions in your original photo and applies the same lighting to the generated hairstyle. If your photo has warm sunset lighting from the left, the hairstyle will reflect that same warmth and directional shadow.</p>
-    <p>Similarly, it matches hair color to look natural under the same lighting conditions. A black hairstyle will have different highlights in indoor fluorescent vs. outdoor golden hour.</p>
-
-    <h2>Step 5: Blending & Refinement</h2>
-    <p>The final step is seamlessly blending the new hairstyle with your original photo. The AI:</p>
-    <ul>
-      <li>Smooths the transition between new hair and your hairline</li>
-      <li>Adjusts stray hairs and edges for realism</li>
-      <li>Ensures the hairstyle doesn't overlap your ears or face unnaturally</li>
-      <li>Applies final color correction to match the overall photo tone</li>
-    </ul>
-
-    <h2>Why Some Apps Fail (and Hair Studio Doesn't)</h2>
-    <p>The quality difference between hairstyle apps comes down to <strong>model training data</strong>:</p>
-    <ul>
-      <li><strong>Bad apps</strong> train their AI mostly on straight-haired, light-skinned subjects. When you upload a photo with coily hair or darker skin, the AI doesn't know what to do.</li>
-      <li><strong>Hair Studio</strong> was trained on a diverse dataset spanning all hair textures (1A through 4C), all skin tones, and all genders. The AI has seen millions of examples of braids, locs, fades, and natural styles on diverse faces — so it produces natural results for everyone.</li>
-    </ul>
-
-    <h2>Privacy: What Happens to Your Photo?</h2>
-    <p>A common concern with AI apps is data privacy. Here's how responsible apps like Hair Studio handle it:</p>
-    <ul>
-      <li>Your photo is uploaded to a secure server for processing</li>
-      <li>The AI generates the result and sends it back to your device</li>
-      <li>Your original photo is <strong>not stored</strong> on any server after processing</li>
-      <li>All data transfer is encrypted (HTTPS/TLS)</li>
-      <li>No facial data is used for training without explicit consent</li>
-    </ul>
-
-    <h2>The Future of AI Hairstyling</h2>
-    <p>The technology is advancing rapidly. Here's what's coming:</p>
-    <ul>
-      <li><strong>Real-time video try-on:</strong> See hairstyles move as you move, like an AR filter</li>
-      <li><strong>Color blending:</strong> Try exact hair dye colors from specific brands</li>
-      <li><strong>Growth simulation:</strong> See how a style looks after 2, 4, or 8 weeks of growth</li>
-      <li><strong>Stylist matching:</strong> AI recommends nearby stylists who specialize in your chosen style</li>
-    </ul>
-
-    <div class="article-cta-box">
-      <h3>Experience the Technology</h3>
-      <p>See AI hairstyle try-on in action. Upload a selfie and get results in seconds.</p>
-      <a href="https://play.google.com/store/apps/details?id=com.hairstudio.app" class="btn-primary" target="_blank" rel="noopener">Try Hair Studio Free</a>
+    <div class="article-note">
+      <p><strong>A correction, August 2026.</strong> An earlier version of this article described a five-stage pipeline with 68-point 3D facial landmarking, semantic hair segmentation and an in-house GAN "trained on millions of hairstyle images". We do not train a model, and that is not how our app works. The article has been rewritten to describe what actually happens. We are leaving the correction visible rather than quietly swapping the text.</p>
     </div>
 
-    <h2>Key Takeaways</h2>
-    <p>AI virtual hairstyle try-on isn't a gimmick — it's a sophisticated multi-step process involving face detection, semantic segmentation, generative AI, and careful blending. The quality of results depends entirely on how well the AI was trained across diverse hair types and skin tones.</p>
-    <p>Hair Studio's commitment to inclusive training data is what separates it from apps that only work well for a narrow subset of users. When technology works for everyone, everyone benefits.</p>
+    <h2>The short version</h2>
+    <p>A modern hairstyle try-on is one call to a large image model, given two pictures: <strong>your selfie</strong>, and <strong>a photograph of the hairstyle</strong>. The model draws a new photograph of you wearing it. Almost everything else is plumbing.</p>
+    <p>That is a much smaller claim than "proprietary neural style transfer", and it is the truthful one. The interesting engineering is not in the model — it is in what you feed it.</p>
+
+    <h2>Why the reference photograph is the whole game</h2>
+    <p>Every style in our catalogue is a real photograph, and that photograph <em>is</em> the specification. When you tap a style, the app fetches that exact image and hands it to the model as the frame to copy.</p>
+    <p>This sounds obvious. It was not how we built it originally. The first version described each style in words — a written blurb saying "medium-length knotless braids, waist length, dark brown" — and asked the model to work from the description. It produced plausible braids that were not the braids in the picture you tapped. People do not pick a style from a paragraph; they pick it because they saw it. If the words and the photograph disagree, the photograph is what the user meant.</p>
+    <p>So the pipeline now derives its own structured read of the style from the same photograph the user saw, and that read, not the marketing copy, is what shapes the request. When a written description contradicts the image, the image wins.</p>
+
+    <h2>What actually runs, in order</h2>
+    <ol>
+      <li><strong>You give it a face.</strong> A selfie from your camera or gallery, uploaded over TLS.</li>
+      <li><strong>The app fetches the style's reference photograph</strong> and extracts a structured description of what is in it — length, parting, thickness, texture, how the style sits on the head.</li>
+      <li><strong>Both images plus that description go to the image model.</strong> Ours is Google's Gemini. We do not train our own model, and very few apps in this category do; the ones that say they do are usually describing a licensed API in dramatic language.</li>
+      <li><strong>The model generates a new photograph.</strong> Not a composite, not an overlay — new pixels, which is why it can follow the lighting and angle of your original shot.</li>
+      <li><strong>The result comes back, is stored with your account, and appears in the app.</strong> If the model returns an empty or unusable frame, the app retries before showing you a failure.</li>
+    </ol>
+
+    <blockquote>Generated pixels, not a wig sticker. That is the difference you can actually see — and the reason the same request twice will not give you the identical image.</blockquote>
+
+    <h2>Why results vary — and why that is inherent</h2>
+    <p>Image models are probabilistic. Running the same selfie against the same style twice gives two slightly different photographs. That is not a bug being hidden from you; it is what this class of model is.</p>
+    <p>What makes the difference between a good result and a bad one, in rough order of impact:</p>
+    <ul>
+      <li><strong>Your photo.</strong> Front-facing, evenly lit, whole head in frame. A dark, steeply angled or cropped shot is the single most common cause of a poor result.</li>
+      <li><strong>Obstruction.</strong> Hands in the hair, hats, heavy filters and sunglasses all degrade it.</li>
+      <li><strong>How unusual the style is.</strong> Common silhouettes are more reliable than rare, highly structured ones.</li>
+      <li><strong>Server conditions.</strong> Generation happens remotely. Half of our recent looks returned within 24 seconds and nine in ten within 51 seconds, but a slow one is a slow one.</li>
+    </ul>
+
+    <h2>What this technology cannot do</h2>
+    <p>Worth being blunt, because the category oversells this badly:</p>
+    <ul>
+      <li>It cannot tell you whether your own hair is long or dense enough for a style. It draws the outcome, not the route to it.</li>
+      <li>It is not a measurement. Do not take a generated length as what your braider will produce.</li>
+      <li>It does not preserve fine identity detail perfectly. Look at a result closely and you will find small departures from your face.</li>
+      <li>It is not real-time. Live AR mirrors run a completely different, much lighter class of model, and they look it.</li>
+    </ul>
+
+    <h2>What happens to your photo</h2>
+    <p>The honest answer, for our app specifically:</p>
+    <ul>
+      <li>Your photo is uploaded over an encrypted connection.</li>
+      <li>It is <strong>stored with your account</strong>, so your past looks are there when you come back. An earlier version of this page said photos were deleted straight after processing. That was wrong, and we would rather correct it than leave you with a false impression of where your face is.</li>
+      <li>Two processors handle it: <strong>Google's Gemini</strong>, which draws the new hairstyle, and <strong>Cloudinary</strong>, which hosts the images.</li>
+      <li>We do not sell your photos and do not use them for advertising.</li>
+      <li>Email <a href="mailto:support@hairstudioapp.com">support@hairstudioapp.com</a> and we will delete your photos and results.</li>
+    </ul>
+    <p>When you evaluate any app in this category, that list is the one to ask for. "Processed securely" is not an answer — it names no processor, no retention period and no way out.</p>
+
+    <div class="article-cta-box">
+      <h3>See it on your own face</h3>
+      <p>One selfie, one style, free — no account needed for the first look.</p>
+      <a href="https://play.google.com/store/apps/details?id=com.hairstudio.app" class="btn-primary" target="_blank" rel="noopener">Get it on Google Play</a>
+    </div>
+
+    <h2>Key takeaways</h2>
+    <p>AI hairstyle try-on is a licensed image model, a carefully chosen reference photograph, and a lot of unglamorous work making sure the picture you tapped is the picture the model is asked to copy. The apps that get it right are the ones whose catalogue is honest, not the ones with the most impressive-sounding architecture diagram.</p>
+    <p>If an app tells you it built its own GAN and trained it on millions of images, ask which images, and who owns them. We got that answer wrong on this page once. It is worth asking.</p>
   </article>
 
   <footer class="footer">
@@ -156,5 +151,6 @@
       </div>
     </div>
   </footer>
+  <script src="../js/main.js"></script>
 </body>
 </html>

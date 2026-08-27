@@ -4,62 +4,107 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Privacy Policy — Hair Studio</title>
-  <meta name="description" content="Privacy Policy for Hair Studio: Hairstyle Try On app." />
+  <meta name="description" content="Privacy Policy for Hair Studio: Hairstyle Try On. What we collect, who processes your photos, how long we keep them, and how to have them deleted." />
   <link rel="canonical" href="https://shadrach16.github.io/ai-hairstyle-virtual-tryon/privacy.html" />
+  <link rel="icon" href="img/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; color: #2D2014; background: #FFFDF7; line-height: 1.7; padding: 2rem 1.5rem; max-width: 800px; margin: 0 auto; }
-    h1 { font-size: 2rem; margin-bottom: 0.5rem; color: #1B2A4A; }
-    h2 { font-size: 1.3rem; margin: 2rem 0 0.5rem; color: #1B2A4A; }
-    p, li { margin-bottom: 0.75rem; color: #6B5E52; }
-    ul { padding-left: 1.5rem; }
-    a { color: #C8860A; }
-    .back-link { display: inline-block; margin-bottom: 2rem; color: #C8860A; font-weight: 600; }
-    .updated { color: #999; font-size: 0.85rem; margin-bottom: 2rem; }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <a href="index.html" class="back-link">← Back to Hair Studio</a>
-  <h1>Privacy Policy</h1>
-  <p class="updated">Last updated: May 3, 2026</p>
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="./" class="nav-logo">
+        <img src="img/logo.svg" alt="Hair Studio Logo" width="36" height="36" />
+        <span>Hair Studio</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="./#features">Features</a></li>
+        <li><a href="blog/">Blog</a></li>
+        <li><a href="./#faq">FAQ</a></li>
+      </ul>
+      <a href="https://play.google.com/store/apps/details?id=com.hairstudio.app" class="nav-cta" target="_blank" rel="noopener">Download Free</a>
+      <button class="nav-toggle" aria-label="Toggle navigation menu" id="nav-toggle">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
 
-  <h2>Introduction</h2>
-  <p>Hair Studio ("we", "our", or "us") respects your privacy. This policy explains how we collect, use, and protect information when you use our mobile application and website.</p>
+  <main class="legal-page">
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: August 28, 2026</p>
 
-  <h2>Information We Collect</h2>
-  <ul>
-    <li><strong>Photos:</strong> When you use the try-on feature, you upload or capture photos. These are processed to generate hairstyle previews and are not stored permanently on our servers.</li>
-    <li><strong>Device Information:</strong> We may collect basic device data (OS version, device model) for app compatibility and crash reporting.</li>
-    <li><strong>Analytics:</strong> We use Google Analytics to understand how users interact with our website. This collects anonymized usage data.</li>
-  </ul>
+    <h2>Introduction</h2>
+    <p>Hair Studio ("we", "our", or "us") respects your privacy. This policy explains how we collect, use, and protect information when you use our mobile application and website.</p>
 
-  <h2>How We Use Your Information</h2>
-  <ul>
-    <li>To provide the hairstyle try-on service</li>
-    <li>To improve app performance and user experience</li>
-    <li>To fix bugs and prevent crashes</li>
-  </ul>
+    <h2>Information We Collect</h2>
+    <ul>
+      <li><strong>Photos:</strong> When you use the try-on feature, you upload or capture photos. Your original photo and the generated result are stored with your account so that your past looks remain available to you in the app. They are retained until you or we delete them — see <a href="#retention">Retention and deletion</a>.</li>
+      <li><strong>Account information:</strong> If you create an account, we store your email address and your credit balance. You can try the app as a guest without creating an account; a guest session still stores the photos and results described above.</li>
+      <li><strong>Device information:</strong> We may collect basic device data (OS version, device model) for app compatibility and crash reporting.</li>
+      <li><strong>Analytics:</strong> We use Google Analytics to understand how people interact with our website. This collects anonymised usage data.</li>
+    </ul>
 
-  <h2>Data Sharing</h2>
-  <p>We do not sell, trade, or share your personal data with third parties. Photos are processed securely and deleted after generation.</p>
+    <h2>How We Use Your Information</h2>
+    <ul>
+      <li>To provide the hairstyle try-on service</li>
+      <li>To keep your past looks available to you in the app</li>
+      <li>To improve app performance and fix bugs and crashes</li>
+    </ul>
 
-  <h2>Data Security</h2>
-  <p>All data transmissions are encrypted using TLS. We implement industry-standard security practices to protect your information.</p>
+    <h2>Data Sharing</h2>
+    <p>We do not sell or trade your personal data, and we do not use your photos for advertising or to train any model.</p>
+    <p>We do share your photos with two service providers who process them on our behalf:</p>
+    <ul>
+      <li><strong>Google</strong> — the Gemini image model, which generates the new hairstyle from your photo.</li>
+      <li><strong>Cloudinary</strong> — image hosting and delivery.</li>
+    </ul>
+    <p>They process your photos only to provide those services to us.</p>
 
-  <h2>Your Rights</h2>
-  <ul>
-    <li>Request deletion of your data at any time</li>
-    <li>Opt out of analytics tracking</li>
-    <li>Contact us for any privacy concerns</li>
-  </ul>
+    <h2 id="retention">Retention and deletion</h2>
+    <p>Your photos and generated results are kept with your account. They are <strong>not</strong> deleted automatically once a generation completes.</p>
+    <p>To have them deleted, email <a href="mailto:support@hairstudioapp.com">support@hairstudioapp.com</a> and we will remove your photos, your results and your account data.</p>
 
-  <h2>Children's Privacy</h2>
-  <p>Our app is rated for ages 3+ and does not knowingly collect personal information from children under 13.</p>
+    <h2>Data Security</h2>
+    <p>All data transmissions are encrypted using TLS. We apply standard security practices to protect the information we hold.</p>
 
-  <h2>Contact Us</h2>
-  <p>For privacy questions or data deletion requests, contact us at: <a href="mailto:support@hairstudioapp.com">support@hairstudioapp.com</a></p>
+    <h2>Your Rights</h2>
+    <ul>
+      <li>Request a copy of your data</li>
+      <li>Request deletion of your data at any time</li>
+      <li>Opt out of analytics tracking</li>
+      <li>Contact us with any privacy concern</li>
+    </ul>
+
+    <h2>Children's Privacy</h2>
+    <p>Our app is rated for ages 3+ and does not knowingly collect personal information from children under 13.</p>
+
+    <h2>Changes to This Policy</h2>
+    <p>We update this policy when what we actually do changes. The August 2026 revision corrected an earlier statement that photos were deleted immediately after generation; they are retained with your account, as described above.</p>
+
+    <h2>Contact Us</h2>
+    <p>For privacy questions or data deletion requests, contact us at <a href="mailto:support@hairstudioapp.com">support@hairstudioapp.com</a>.</p>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <img src="img/logo.svg" alt="Hair Studio" width="32" height="32" />
+        <span>Hair Studio</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://play.google.com/store/apps/details?id=com.hairstudio.app" target="_blank" rel="noopener">Google Play</a>
+        <a href="blog/">Blog</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </div>
+      <div class="footer-copy">
+        <p>&copy; 2026 Hair Studio by Wao Apps. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+  <script src="js/main.js"></script>
 </body>
 </html>
